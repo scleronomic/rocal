@@ -2,7 +2,7 @@ import numpy as np
 from wzk.mpl import (new_fig, save_fig, set_style, plt,
                      correlation_plot)
 
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION
 
 from Justin.Calibration.OptimalDesign.get_calibration_sets import setup
 # from Justin.Calibration import greedy
@@ -13,8 +13,8 @@ from Justin.Calibration.OptimalDesign.get_calibration_sets import setup
 set_style(s=('ieee',))
 fig_width_inch = 10
 
-dir_files = DLR_USERSTORE_PAPER_20CAL + 'ff0f_11/'
-dir_figures = DLR_USERSTORE_PAPER_20CAL + 'Figures/ff0f_11/'
+dir_files = ICHR20_CALIBRATION + 'ff0f_11/'
+dir_figures = ICHR20_CALIBRATION + 'Figures/ff0f_11/'
 
 
 opt_ta, _, opt_d, _ = setup(model='j29', cal_set='dummy', test_set='100000')
@@ -80,3 +80,5 @@ def stair(n_stair):
              bbox=None, formats=('png', 'pdf'))
 
 stair(n_stair=25)
+
+

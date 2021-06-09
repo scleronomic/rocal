@@ -1,15 +1,15 @@
 import numpy as np
 
-from Justin.Calibration.calibration import (kinematic, unwrap_x)
-from Justin.Calibration.Measurements.io2 import load_q
-from Justin.Calibration.justin import Justin19Calib
+from calibration import (kinematic, unwrap_x)
+from Measurements.io2 import load_q
+from justin import Justin19Calib
 
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION
 from wzk.mpl import new_fig, save_fig, set_style, set_borders
 
-directory = DLR_USERSTORE_PAPER_20CAL
+directory = ICHR20_CALIBRATION
 
-directory_fig = DLR_USERSTORE_PAPER_20CAL + '/Plots/Final/'
+directory_fig = ICHR20_CALIBRATION + '/Plots/Final/'
 set_style(s=('ieee',))
 set_borders(left=0.15, right=0.95, bottom=0.175, top=0.95)
 font_size = 8
@@ -50,9 +50,6 @@ def plot():
 
     np.random.seed(0)
     q = cal_rob.sample_q(n_samples)
-    # q = load_q(directory=directory, cal_rob=cal_rob)
-
-
     x = np.zeros_like(cp)
 
     t_list = []
@@ -68,26 +65,24 @@ def plot():
             tt.append(kinematic(cal_rob=cal_rob, q=q, **unwrap_x(cal_rob=cal_rob, x=x)))
         t_list.append(tt)
 
+    t_list = np.array(t_list)
     # order zero is to completely leave out the compliance part
-    x[:] = 0
-    t_list = np.concatenate([kinematic(cal_rob=cal_rob, q=q, **unwrap_x(cal_rob=cal_rob, x=x)
-                                       )[np.newaxis, np.newaxis].repeat(n_tests, axis=0),
-                             t_list], axis=1)
+    # x[:] = 0
+    # t_list = np.concatenate([kinematic(cal_rob=cal_rob, q=q, **unwrap_x(cal_rob=cal_rob, x=x)
+    #                                    )[np.newaxis, np.newaxis].repeat(n_tests, axis=0),
+    #                          t_list], axis=1)
 
     r = np.linalg.norm((t_list[:, -1:] - t_list[:, :-1])[..., :3, -1], axis=-1)
 
     r *= 1000  # to mm
-    # r[:, 1:, :, :] *= 1.5
     r[r < 1e-6] = 1e-6
     r_med = np.percentile(r, q=50, axis=(-1, -2))
     r_std0 = np.percentile(r, q=15.9, axis=(-1, -2))
-    # r_std0 = np.percentile(r, q=10, axis=(-1, -2))
     r_std1 = np.percentile(r, q=84.1, axis=(-1, -2))
-    # r_std1 = np.percentile(r, q=90, axis=(-1, -2))
 
     for i in range(len(cp_list)):
         ax.semilogy(r_med[i], color=color_list[i], marker=marker_list[i], label=name_list[i], markersize=3)
-        ax.fill_between(x=np.arange(n_iter), y1=r_std0[i], y2=r_std1[i], color=color_list[i], alpha=0.2)
+        ax.fill_between(x=np.arange(n_iter-1), y1=r_std0[i], y2=r_std1[i], color=color_list[i], alpha=0.2)
 
     # ax.plot(100, 1, color='k', ls='', marker='x', markersize=3, label='calibrated')
     # for i in range(len(cp_list)):

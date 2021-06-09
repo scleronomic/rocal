@@ -3,11 +3,11 @@ from wzk.mpl import (new_fig, save_fig, turn_ticks_off, get_pip, set_style,
                      geometry, figure, patches, golden_ratio,
                      get_aff_trafo, RelativeFancyArrow, FancyArrowX2, FancyBbox)
 
-from Util.Visualization import humanoid_robot_2d
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from mopla.Visualization import humanoid_robot_2d
+from definitions import ICHR20_CALIBRATION_FIGS
 
-# INFO for 2columns look at commit "Calibratrion Sketch 2 columns"  / 4ff8c36a
-# INFO for 1columns look at commit "Calibratrion Sketch 1 column"  / ???
+# INFO for 2columns look at commit "Calibration Sketch 2 columns"  / 4ff8c36a
+# INFO for 1columns look at commit "Calibration Sketch 1 column"  / ???
 
 # Figure Dimensions
 x0, y0 = .0, .0
@@ -90,8 +90,8 @@ geometry.eye_pov(ax=ax, xy=cam1_xy, angle=cam1_theta, radius=cam_r, arc=cam_arc,
 geometry.eye_pov(ax=ax, xy=cam2_xy, angle=cam2_theta, radius=cam_r, arc=cam_arc, color=cam_c, lw=cam_lw)
 geometry.eye_pov(ax=ax, xy=cam3_xy, angle=cam3_theta, radius=cam_r, arc=cam_arc, color=cam_c, lw=cam_lw)
 
-target_r, target_l = humanoid_robot_2d.plot_2drobot(ax=ax, xy=robot_xy, q=q,
-                                                    chest=chest, arms=arms, hands=hands, joints=joints, head=head)
+target_r, target_l = humanoid_robot_2d.plot_robot(ax=ax, xy=robot_xy, q=q,
+                                                  chest=chest, arms=arms, hands=hands, joints=joints, head=head)
 plot_ray(cam_x=cam1_xy, target_x=target_r, color=ray_color_orientation, offset1=0.06, _ax=ax)
 plot_ray(cam_x=cam1_xy, target_x=target_l, color=ray_color_orientation, offset1=0.06, _ax=ax)
 
@@ -139,6 +139,6 @@ ax_legend.text(x2_l, y_legend[-3], 'Occlusion Error', ha=ha, va=va, size=font_si
 ax_legend.text(x2_l, y_legend[-4], 'Orientation Error', ha=ha, va=va, size=font_size)
 ax_legend.text(x2_l, y_legend[-5], 'Target Marker', ha=ha, va=va, size=font_size)
 
-# save_fig(filename=DLR_USERSTORE_PAPER_2020_CALIB+'Paper/Calibration_Sketch', fig=fig, formats=('png', 'pdf'), bbox=None)
+save_fig(filename=ICHR20_CALIBRATION_FIGS+'Final/calibration_sketch', fig=fig, formats=('png', 'pdf'), bbox=None)
 
-# fig.savefig(fig=fig, fname=DLR_USERSTORE_PAPER_2020_CALIB+'Paper/Calibration_Sketch2.pdf')
+# fig.savefig(fig=fig, fname=ICHR20_CALIBRATION+'Final/Calibration_Sketch2.pdf')

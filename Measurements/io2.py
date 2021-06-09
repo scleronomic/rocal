@@ -20,7 +20,7 @@ def remove_poses_form_measurements(file, target_order, q_list=None, verbose=0):
 
     threshold = 0.1
     if q_list is None:
-        from Justin.primitives_torso import justin_primitives
+        from mopla.Justin.primitives_torso import justin_primitives
         q_list = np.concatenate((justin_primitives(justin='getready_left_side_down')[0],
                                  justin_primitives(justin='getready')[0]))
 
@@ -100,9 +100,10 @@ def combine_measurements(file_list, new_file, load_fun, target_order):
     """
 
     Example:
-    # file_list = ['/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRight/Validation/Measurements/m_random_poses_smooth50_A.msgpk',
-    #              '/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRight/Validation/Measurements/m_random_poses_smooth50_C.msgpk']
-    # new_file = '/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRight/Validation/Measurements/m_random_poses_smooth100_AC.msgpk'
+    directory = '/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRight/Validation/Measurements/'
+    # file_list = [directory + '/m_random_poses_smooth50_A.msgpk',
+    #              directory + '/m_random_poses_smooth50_C.msgpk']
+    # new_file = directory + '/m_random_poses_smooth100_AC.msgpk'
     # load_fun = load_measurements_right_head
     # combine_measurements(file_list, new_file, load_fun)
     """
@@ -138,6 +139,7 @@ def save_results(*, x, x_dict, file=None):
     np.save(file, dict(x=x, x_dict=x_dict))
 
 
+# noinspection PyUnresolvedReferences
 def load_results(file):
     data = np.load(file, allow_pickle=True).item()
     x = data['x']
@@ -162,8 +164,8 @@ def load_error_stats(file, verbose=0):
         print_stats(*stats[:, 0, 0, :].T, names=['mean', 'std', 'median', 'min', 'max'])
 
     err_mean = stats[..., 0, 0, 0]
-    err_std = stats[..., 0, 0, 1]
-    err_med = stats[..., 0, 0, 2]
+    # err_std = stats[..., 0, 0, 1]
+    # err_med = stats[..., 0, 0, 2]
     err_max = stats[..., 0, 0, 4]
 
     return idx, pars, err_mean, err_max
@@ -215,15 +217,14 @@ def load_q(directory, cal_rob):
 
 
 def load_j(directory, cal_rob,
-             prior,
-             verbose=0):
-
+           prior):
+    print(prior, 'prior is missing')
     file = __get_path_identifier(directory=directory, cal_rob=cal_rob, name='j', full=True)
     jac = np.load(file)
 
-    def __get_sub_jac(jac, mode):
+    def __get_sub_jac(_jac, mode):
         if mode == 'p':
-            jac = jac[:, :, :3, -1, :].reshape((jac.shape[0], -1, jac.shape[-1]))
+            _jac = _jac[:, :, :3, -1, :].reshape((_jac.shape[0], -1, _jac.shape[-1]))
 
         elif mode == 'r':
             raise NotImplementedError
@@ -234,9 +235,9 @@ def load_j(directory, cal_rob,
         else:
             raise AttributeError
 
-        return jac
+        return _jac
 
-    jac = __get_sub_jac(jac=jac, mode=cal_rob.target_mode)
+    jac = __get_sub_jac(_jac=jac, mode=cal_rob.target_mode)
 
     return jac
 
@@ -253,9 +254,9 @@ def save_m(directory, cal_rob, arr):
 
 ########################################################################################################################
 def get_q(cal_rob, split, seed=0):
-    from definitions import DLR_USERSTORE_PAPER_20CAL
+    from definitions import ICHR20_CALIBRATION
 
-    directory = DLR_USERSTORE_PAPER_20CAL + '/Measurements/600'
+    directory = ICHR20_CALIBRATION + '/Measurements/600'
     measurement_file = directory + '/measurements_600.npy'
     q, t, imu, _ = np.load(measurement_file, allow_pickle=True)
     q0 = np.load(directory + '/q0.npy')
@@ -271,14 +272,13 @@ def get_q(cal_rob, split, seed=0):
                   [5,  13,  18,  73, 102, 125, 220, 291, 319, 330, 362, 369,  # bad2
                    374, 376, 422, 459, 470, 522, 526, 528, 538, 543, 556, 559],
                   ]
-                  # [18, 41, 52, 54, 68, 71, 79, 83, 84, 85, 134, 141,  # bad3
-                  #  166, 178, 194, 199, 209, 215, 224, 226, 240, 253,
-                  #  257, 259, 280, 281, 306, 313, 321, 332, 341, 342,
-                  #  347, 386, 394, 419, 428, 429, 440, 449, 453, 467,
-                  #  482, 487, 492, 498, 500, 501, 517, 534]]
+    # [18, 41, 52, 54, 68, 71, 79, 83, 84, 85, 134, 141,  # bad3
+    #  166, 178, 194, 199, 209, 215, 224, 226, 240, 253,
+    #  257, 259, 280, 281, 306, 313, 321, 332, 341, 342,
+    #  347, 386, 394, 419, 428, 429, 440, 449, 453, 467,
+    #  482, 487, 492, 498, 500, 501, 517, 534]]
     remove_idx = combine_iterative_indices(n=len(q), idx_list=remove_idx)
     q, q0, t, imu = delete_args(q, q0, t, imu, obj=remove_idx, axis=0)
 
     # (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test)
     return train_test_split(q0, q, t, split=split, shuffle=True, seed=seed)
-

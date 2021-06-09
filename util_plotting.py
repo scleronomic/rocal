@@ -1,10 +1,10 @@
 import numpy as np
 
-from Kinematic.frames import frame2trans_rotvec
-from Kinematic.frames_diff import frame_difference
 
 from wzk import str0_to_n, get_stats, print_stats, print_table
-from wzk.mpl import new_fig, save_fig, save_all, error_area, plot_projections_2d
+from wzk.spatial import frame2trans_rotvec, frame_difference
+
+from wzk.mpl import new_fig, save_all, error_area, plot_projections_2d
 
 
 # Visualization

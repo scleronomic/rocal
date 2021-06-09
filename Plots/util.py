@@ -26,10 +26,14 @@ def true_best_with_noises(err_r, err_b, obj_r, obj_b,
 
     # Mean Cross
     c, ls, a, z = 'k', '-', 0.8, 10
-    ax.hlines(rm.mean(), xmin=obj_r.mean()-obj_r.std(), xmax=obj_r.mean()+obj_r.std(), color=c, ls=ls, alpha=a, zorder=z)
-    ax.hlines(bm.mean(), xmin=obj_b.mean()-obj_b.std(), xmax=obj_b.mean()+obj_b.std(), color=c, ls=ls, alpha=a, zorder=z)
-    ax.vlines(obj_r.mean(), ymin=rm.mean()-rm.std(), ymax=rm.mean()+rm.std(), color=c, ls=ls, alpha=a, zorder=z)
-    ax.vlines(obj_b.mean(), ymin=bm.mean()-bm.std(), ymax=bm.mean()+bm.std(), color=c, ls=ls, alpha=a, zorder=z)
+    ax.hlines(rm.mean(), xmin=obj_r.mean()-obj_r.std(), xmax=obj_r.mean()+obj_r.std(),
+              color=c, ls=ls, alpha=a, zorder=z)
+    ax.hlines(bm.mean(), xmin=obj_b.mean()-obj_b.std(), xmax=obj_b.mean()+obj_b.std(),
+              color=c, ls=ls, alpha=a, zorder=z)
+    ax.vlines(obj_r.mean(), ymin=rm.mean()-rm.std(), ymax=rm.mean()+rm.std(),
+              color=c, ls=ls, alpha=a, zorder=z)
+    ax.vlines(obj_b.mean(), ymin=bm.mean()-bm.std(), ymax=bm.mean()+bm.std(),
+              color=c, ls=ls, alpha=a, zorder=z)
 
     # Mark optimum
     i_r = np.argmin(rm)
@@ -47,4 +51,3 @@ def true_best_with_noises(err_r, err_b, obj_r, obj_b,
 
     if save_dir is not None:
         save_fig(fig=fig, filename=save_dir + 'true_best_with_noises', bbox=None, formats=('png', 'pdf'))
-

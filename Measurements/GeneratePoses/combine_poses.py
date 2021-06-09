@@ -3,13 +3,12 @@
 import numpy as np
 
 from Justin.Planner.slow_down_time import slow_down_q_path
-import Util.Visualization.justin_mayavi as ja
 
 import Justin.parameter_torso as jtp
 from Justin.primitives_torso import justin_primitives, get_free_joints
 
 import Optimizer.InitialGuess.path as path_i
-import Optimizer.Objective.gradient_descent as opt2
+import Optimizer.gradient_descent as opt2
 from Optimizer import feasibility_check as fc, choose_optimum
 
 
@@ -20,7 +19,7 @@ from Kinematic.Robots import Justin19, com
 
 from wzk import get_exclusion_mask, read_msgpack, write_msgpack
 
-kauket_file = '/net/kauket/home_local/baeuml/tmp/two_arm_A_10.msgpk'
+# kauket_file = '/net/kauket/home_local/baeuml/tmp/two_arm_A_10.msgpk'
 
 # General
 verbose = 1
@@ -134,18 +133,18 @@ def calculate_trajectories_between(q_list):
 def calculate_path(directory, n_samples, mode='ordered'):
     print(f"directory: {directory}, n_samples: {n_samples}")
 
-    q_list = np.load(DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/{mode}_poses_{n_samples}.npy")
+    q_list = np.load(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_{n_samples}.npy")
 
     q_path_list = calculate_trajectories_between(q_list=q_list)
 
-    np.save(DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_path_list)
+    np.save(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_path_list)
 
     return q_path_list
 
 
 def no_unnecessary_motion(directory, n_samples, variable_joints, q0, mode='ordered'):
     try:
-        q_test_paths = np.load(DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/{mode}_poses_path_{n_samples}.npy")
+        q_test_paths = np.load(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy")
         print("Load path.npy")
 
     except FileNotFoundError:
@@ -166,7 +165,7 @@ def no_unnecessary_motion(directory, n_samples, variable_joints, q0, mode='order
             # animate_poses(q=q_test_paths[o-1:o+1].reshape((-1, par.shape.n_dof)))
 
     # Create smooth path [List of Lists]
-    np.save(DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_test_paths)
+    np.save(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_test_paths)
 
 
 def smooth_paths(q_path_list, verbose=1):
@@ -187,7 +186,7 @@ def smooth_paths(q_path_list, verbose=1):
 
 
 def test_read():
-    file = DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightArm/' + 'random_poses_path_smooth_100.bin'
+    file = ICHR20_CALIBRATION_DATA + 'TorsoRightArm/' + 'random_poses_path_smooth_100.bin'
     file = PROJECT_ROOT + "random_poses_smooth_1.bin"
     file = PROJECT_ROOT + "front_tcp_calibration_50_fine_ordered_subset_smooth.bin"
 
@@ -251,9 +250,9 @@ def main():
 # for f in ['TEST']:
 #     n = 1
 #     directory = f'TorsoRightLeft/{f}'
-#     q_path_list = np.load(DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/ordered_poses_path_{n}.npy")
+#     q_path_list = np.load(ICHR20_CALIBRATION_DATA + f"{directory}/ordered_poses_path_{n}.npy")
 #     q_path_list = smooth_paths(q_path_list, verbose=1)
-#     write_msgpack(file=DLR_USERSTORE_DATA_CALIBRATION + f"{directory}/random_poses_smooth_{n}.bin", nested_list=q_path_list)
+#     write_msgpack(file=ICHR20_CALIBRATION_DATA + f"{directory}/random_poses_smooth_{n}.bin", nested_list=q_path_list)
 
 
 # q_path_list = np.load('/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightArm/C/random_poses_path_50.npy')
@@ -261,11 +260,11 @@ def main():
 # write_msgpack(file='/volume/USERSTORE/tenh_jo/0_Data/Calibration/random_poses_smooth50_C.bin', nested_list=q_path_list)
 
 # q_list = np.load('front_tcp_calibration2.npy')
-# q_list = np.load(DLR_USERSTORE_DATA_CALIBRATION + 'Measurements/front_tcp_calibration_50_fine_ordered_subset.npy')
+# q_list = np.load(ICHR20_CALIBRATION_DATA + 'Measurements/front_tcp_calibration_50_fine_ordered_subset.npy')
 
 
 n = 20
-directory = DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightLeft/TCP_right_left3_cal/'
+directory = ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/TCP_right_left3_cal/'
 q_list = np.load(directory + f'ordered_poses_{n}.npy',)
 
 fc.feasibility_check(q=q_list, par=par)

@@ -1,20 +1,19 @@
 from wzk.mpl import (set_style)
 
 from A_Plots.Calibration2020.util import true_best_with_noises
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION
 
 set_style(s=('ieee',))
 
 from Justin.Calibration import setup
 from Justin.Calibration import load_error_stats
 
-
 fig_width_inch = 10
-dir_files = DLR_USERSTORE_PAPER_20CAL + 'Dummy_c/'
-dir_figures = DLR_USERSTORE_PAPER_20CAL + 'Figures/Dummy_c/'
+dir_files = ICHR20_CALIBRATION + 'Dummy_j_001/'
+dir_figures = ICHR20_CALIBRATION + 'Figures/Dummy_j_001/'
 
 
-opt_ta, _, opt_d, _ = setup(model='c', cal_set='dummy', test_set='100000')
+opt_ta, _, opt_d, _ = setup(model='j', cal_set='dummy', test_set='100000')
 
 file_rand_n = dir_files + 'error_Random_100_100noises.npy'
 file_det_b_n = dir_files + 'error_DetmaxBest_100_100noises.npy'

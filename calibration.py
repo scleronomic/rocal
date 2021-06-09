@@ -3,16 +3,15 @@ import numpy as np
 from scipy.optimize import minimize as minimize_scipy
 import pyOpt
 
-from Kinematic.frames import invert, frame2trans_rotvec, trans_rotvec2frame  # noqa: F401 unused import
-from Kinematic.dh import frame_from_dh2
-from Kinematic.frames_diff import frame_difference_cost, frame_difference
-from Kinematic import forward
+from mopla.Kinematic import forward
 
-from Justin.Calibration.util_plotting import print_frame_difference, plot_frame_difference, hist_frame_difference
-from wzk import (get_stats, get_timestamp, mp_wrapper, random_subset, safe_create_dir,
-                 numeric_derivative,
-                 print_stats, print_table, print_dict, print_progress, uuid4,
-                 str0_to_n)  # noqa: F401 unused import
+from util_plotting import print_frame_difference, plot_frame_difference
+from wzk.spatial import invert, frame2trans_rotvec, trans_rotvec2frame, frame_difference_cost, frame_difference
+from wzk.files import safe_create_dir
+from wzk.math2 import random_subset, numeric_derivative
+from wzk.multiprocessing2 import mp_wrapper
+from wzk.printing import print_dict, print_progress
+from wzk.strings import uuid4
 
 
 # Calibration Parameters
@@ -202,7 +201,7 @@ def create_x_unwrapper(fr_bool, dh_bool, cp_bool, ma_bool,
 
 
 # Kinematic
-def get_torque_dh(*, f, cal_rob,
+def get_torque_dh(f, cal_rob,
                   dh, cp, ma):
 
     # Finding
@@ -266,26 +265,10 @@ def kinematic(cal_rob,
 
     # Forward Kinematic with compliance in the joints
     f = cal_rob.get_frames_dh(q=q, dh=dh)
-    dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, cp=cp, ma=ma)
-    f = cal_rob.get_frames_dh(q=q, dh=dh_trq)
-    t = fr[0] @ f[:, cal_rob.idx_fr, :, :] @ fr[1:]
-
-    t_list = [t]
     for i in range(cal_rob.cp_loop):
         dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, cp=cp, ma=ma)
         f = cal_rob.get_frames_dh(q=q, dh=dh_trq)
-        t = fr[0] @ f[:, cal_rob.idx_fr, :, :] @ fr[1:]
-        t_list = [t]
-
-    # Visualize
-    # t_list = np.array(t_list)
-    # txr_list = t_list[:, :, 0, :3, -1]
-    # d2last = np.linalg.norm(txr_list[-1] - txr_list, axis=-1)
-    # d2_last_stats = get_stats(d2last, axis=-1, return_array=True,)
-    # print(np.round(d2_last_stats*1000, 1), 'mm')
-    # print(cp2)
-    # fig, ax = new_fig()
-    # ax.plot(d2last*1000)
+    t = fr[0] @ f[:, cal_rob.idx_fr, :, :] @ fr[1:]
 
     return t
 
@@ -299,14 +282,17 @@ def create_wrapper_kinematic(cal_rob, x_wrapper=None,
         x_wrapper = create_x_unwrapper(**x_bool_dict)
 
     if q is None and x is None:
+        # noinspection PyShadowingNames
         def kinematic2(q, x):
             return kinematic(cal_rob=cal_rob, q=q, **x_wrapper(x))
     elif x is None:
+        # noinspection PyShadowingNames
         def kinematic2(x):
             return kinematic(cal_rob=cal_rob, q=q, **x_wrapper(x))
     elif q is None:
         x_dict2 = x_wrapper(x)
 
+        # noinspection PyShadowingNames
         def kinematic2(q):
             return kinematic(cal_rob=cal_rob, q=q, **x_dict2)
     else:
@@ -385,6 +371,7 @@ def build_objective_correction(frame, kin_fun,
     return objective
 
 
+# noinspection PyUnresolvedReferences
 def minimize(fun, x0, method, options, verbose=0):
     """
     # FINDING SLSQP is way faster and seems as accurate as L-BFGS-B

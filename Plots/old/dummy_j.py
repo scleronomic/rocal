@@ -2,7 +2,7 @@ import numpy as np
 from wzk.mpl import (new_fig, save_fig, set_style, plt,
                      correlation_plot)
 
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION
 from Justin.Calibration import greedy
 
 
@@ -14,8 +14,8 @@ from A_Plots.Calibration2020.util import true_best_with_noises
 set_style(s=('ieee',))
 fig_width_inch = 10
 
-dir_files = DLR_USERSTORE_PAPER_20CAL + 'Dummy_j/'
-dir_figures = DLR_USERSTORE_PAPER_20CAL + 'Figures/Dummy_j/'
+dir_files = ICHR20_CALIBRATION + 'Dummy_j/'
+dir_figures = ICHR20_CALIBRATION + 'Figures/Dummy_j/'
 
 
 opt_ta, _, opt_d, _ = setup(model='j29', cal_set='dummy', test_set='100000')

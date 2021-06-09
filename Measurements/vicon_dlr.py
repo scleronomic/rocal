@@ -35,5 +35,3 @@ if __name__ == '__main__':
     ax.legend()
 
     save_fig(filename='vicon_camera_poss_2020-08-17', fig=fig, formats='pdf')
-
-

@@ -9,7 +9,7 @@ from Kinematic.Robots import Justin19
 from wzk import random_subset, numeric_derivative, change_tuple_order, tic, toc, uuid4, get_timestamp
 from wzk.mpl import new_fig, save_fig, save_all, correlation_plot, set_style
 
-from definitions import DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION
 
 
 robot = Justin19
@@ -64,7 +64,7 @@ def random3():
 
         idx2 = np.array(idx + [[]], dtype=object)
         obj2 = np.array(obj).ravel()
-        np.save(DLR_USERSTORE_PAPER_20CAL + 'idx_DetmaxBest_150.npy', (idx2, obj2))
+        np.save(ICHR20_CALIBRATION + 'idx_DetmaxBest_150.npy', (idx2, obj2))
     # idx, obj = np.load(DLR_USERSTORE_PAPER_2020_CALIB + 'idx_dummy_j_DetmaxBest_staircase120.npy', allow_pickle=True)
     # print(np.shape(idx[-2]), obj.shape)
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     from Justin.Calibration.main import c, get_parameter_identifier
     # opt_a = setup(c=c, directory=DLR_USERSTORE_PAPER_2020_CALIB)
 
-    i, o = detmax2(c=c, directory=DLR_USERSTORE_PAPER_20CAL, n=10000, k=50, m=10, save=True)
+    i, o = detmax2(c=c, directory=ICHR20_CALIBRATION, n=10000, k=50, m=10, save=True)
 
     # create_150_idx()
     # o = np.load(DLR_USERSTORE_PAPER_2020_CALIB + 'ff0f_11/idx_DetmaxBest_150.npy', allow_pickle=True)

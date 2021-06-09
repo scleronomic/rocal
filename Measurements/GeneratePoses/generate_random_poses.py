@@ -17,7 +17,7 @@ import Optimizer.feasibility_check as fc
 import Util.Visualization.justin_mayavi as ja
 import Util.Visualization.plotting_2 as plt2
 
-from definitions import DLR_USERSTORE_DATA_CALIBRATION, DLR_USERSTORE_PAPER_20CAL
+from definitions import ICHR20_CALIBRATION_DATA, ICHR20_CALIBRATION
 import parameter
 
 # Parameter
@@ -388,19 +388,19 @@ def save_loop(n):
         q = np.concatenate((q, main_torso_right_left_filter(100000)), axis=0)
 
     q = q[:n]
-    np.save(f"{DLR_USERSTORE_DATA_CALIBRATION}random_poses_two_arms{get_timestamp()}_{n}.npy", q)
+    np.save(f"{ICHR20_CALIBRATION_DATA}random_poses_two_arms{get_timestamp()}_{n}.npy", q)
 
 
 # q0 = pp.justin_primitives(justin='getready')
 # q = q0.copy()
 # q[..., 3:-2] = np.deg2rad([0, -80, 0, 90, -60, 0, 30]*2)
 # qq = np.vstack((q0, q, q0))[:, 0, :]
-# np.save(f"{DLR_USERSTORE_DATA_CALIBRATION}ordered_poses_1.npy", qq)
+# np.save(f"{ICHR20_CALIBRATION_DATA}ordered_poses_1.npy", qq)
 
 # save_loop(10000)
 # main_torso_right_left_filter(n_samples=100000)
 
-# q = np.load(DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightLeft/random_poses_10000.npy')
+# q = np.load(ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/random_poses_10000.npy')
 # print(q.shape)
 # main_torso_right_left_filter(q=q)
 
@@ -417,8 +417,8 @@ def order(q, q2):
     q2_o = q_o.copy()
     q2_o[1:-1] = q2[route[1:]-1]
 
-    np.save(DLR_USERSTORE_DATA_CALIBRATION + f'TorsoRightLeft/TCP_right3/ordered_poses_{n}.npy', q_o)
-    np.save(DLR_USERSTORE_DATA_CALIBRATION + f'TorsoRightLeft/TCP_right3_cal/ordered_poses_{n}.npy', q2_o)
+    np.save(ICHR20_CALIBRATION_DATA + f'TorsoRightLeft/TCP_right3/ordered_poses_{n}.npy', q_o)
+    np.save(ICHR20_CALIBRATION_DATA + f'TorsoRightLeft/TCP_right3_cal/ordered_poses_{n}.npy', q2_o)
 
     return q_o, q2_o
 
@@ -429,7 +429,7 @@ def order(q, q2):
 # q_o50 = order_poses(q=q50, q0=q_getready, variable_joints=pp.get_free_joints(torso=True, right=True, left=True),
 #                     time_limit=50, verbose=0)
 # #
-# ff = DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightLeft/TCP_RIGHT/ordered_poses_{}.npy'
+# ff = ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/TCP_RIGHT/ordered_poses_{}.npy'
 # # # np.save(ff.format(10), q_o10)
 # # # np.save(ff.format(20), q_o20)
 # # # np.save(ff.format(50), q_o50)
@@ -461,9 +461,6 @@ from Justin.Calibration.use import load_get_corrected_q_opt, load_calibrated_kin
 #   could be molded to optimized c++ code and could allow good parallelization,
 #   this would a simple forward function, their exists a derivative, otherwise it is an iterative root search
 #   Kann man das als linearisiertes GLS hinschreiben und als  q_corrected = 19x19 * q_commanded aufloesen
-
-# MathWorks fuer die THDler + Learning FrameWork
-
 
 # q2 = np.load('/volume/USERSTORE/tenh_jo/0_Data/Calibration/Results/Paper/Measurements/front_tcp_calibration_fine_1740_cal.npy')
 # np.save('/volume/USERSTORE/tenh_jo/0_Data/Calibration/Results/Paper/Measurements/front_tcp_calibration_fine_1236_cal_filtered.npy', q2)
@@ -518,7 +515,7 @@ q = np.load("/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_rig
 #
 # q = q[feasible == 1]
 #
-# ff = DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightLeft/TCP_right03_cal/ordered_poses_{}.npy'
+# ff = ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/TCP_right03_cal/ordered_poses_{}.npy'
 # np.save(ff.format(len(q)-2), q)
 
 corrected_q = load_get_corrected_q_lin()
@@ -547,7 +544,7 @@ q2 = q2[feasible == 1][:20]
 
 q2 = q2[:, np.newaxis, :]
 q_o, route = order_poses(q=q_m, q0=q_getready, variable_joints=pp.get_free_joints(torso=True, right=True, left=True),
-                        time_limit=20, verbose=0)
+                         time_limit=20, verbose=0)
 q2_o = q_o.copy()
 q2_o[1:-1] = q2[route[1:] - 1]
 
@@ -573,12 +570,10 @@ np.save('/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_right_l
 # q_o20b = q_o20b[fc.feasibility_check(q=q_o20b, par=par)]
 # q_o50b = q_o50b[fc.feasibility_check(q=q_o50b, par=par)]
 #
-# ff = DLR_USERSTORE_DATA_CALIBRATION + 'TorsoRightLeft/TCP_RIGHT_CAL/ordered_poses_{}.npy'
+# ff = ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/TCP_RIGHT_CAL/ordered_poses_{}.npy'
 # np.save(ff.format(10), q_o10b)
 # np.save(ff.format(20), q_o20b)
 # np.save(ff.format(50), q_o50b)
-
-
 
 
 # Evaluation of the Calibration Position Filtering
