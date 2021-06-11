@@ -3,10 +3,10 @@ import numpy as np
 from wzk.spatial import apply_noise, trans_rotvec2frame, frame_difference
 from wzk.random2 import noise
 
-from calibration import kinematic, set_bool_dict_false, get_active_parameters
+from rocal.calibration import kinematic, set_bool_dict_false, get_active_parameters
 # noinspection PyUnresolvedReferences
-from Measurements.io2 import load_q, save_m
-from util_plotting import hist_frame_difference
+from rocal.Measurements.io2 import load_q, save_m
+from rocal.Plots.util_plotting import hist_frame_difference
 
 
 def get_dummy_parameters(cal_rob,
@@ -56,7 +56,7 @@ def create_dummy_measurements(*, cal_rob, x_dict, q,
 
 
 def value_analysis_cp():
-    from definitions import ICHR20_CALIBRATION
+    from rocal.definitions import ICHR20_CALIBRATION
 
     directory = ICHR20_CALIBRATION
     # x_dict0 = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff.npy", allow_pickle=True)[0]
@@ -76,13 +76,13 @@ def value_analysis_cp():
 
 
 def main_create_dummy_measurements():
-    from definitions import ICHR20_CALIBRATION
-    from justin import Justin19Calib
+    from rocal.definitions import ICHR20_CALIBRATION
+    from rocal.Robots.Justin19 import Justin19Cal
     directory = ICHR20_CALIBRATION
 
     dcmf = 'cc0c'
-    cal_rob_ff = Justin19Calib(dcmf=dcmf, cp_loop=30, config_filter='ff', use_imu=False, add_nominal_offsets=True,
-                               fr0=False)
+    cal_rob_ff = Justin19Cal(dcmf=dcmf, cp_loop=30, config_filter='ff', use_imu=False, add_nominal_offsets=True,
+                             fr0=False)
     # cal_rob_nf = Justin19Calib(dcmf=dcmf, cp_loop=30, config_filter='nf', use_imu=False, add_nominal_offsets=True,
     #                            fr0=False)
     x_dict = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff.npy", allow_pickle=True)[0]

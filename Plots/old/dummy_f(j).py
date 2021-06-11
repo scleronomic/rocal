@@ -1,7 +1,7 @@
 from wzk.mpl import (set_style)
 
 from A_Plots.Calibration2020.util import true_best_with_noises
-from definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION
 
 set_style(s=('ieee',))
 

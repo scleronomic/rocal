@@ -1,6 +1,7 @@
 import numpy as np
 from mopla.Kinematic.Robots import Justin19
 from mopla.Justin import parameter_torso as jtp
+from rocal.Robots import RobotCal
 
 
 # Bool Parameter
@@ -120,21 +121,11 @@ p_r_m = [-0.1, -0.03, +0.1]
 p_l_m = [-0.1, 0.03, 0.05]
 
 
-class Justin19Calib(Justin19):
+class Justin19Cal(Justin19, RobotCal):
+    def __init__(self, **kwargs):
+        Justin19.__init__(self)
+        RobotCal.__init__(self, **kwargs)
 
-    def __init__(self, dcmf, ma0=True, fr0=True, config_filter='ff', target_mode='p',
-                 cp_loop=0, use_imu=False, add_nominal_offsets=True,
-                 include_beta=False):
-
-        self.dcmf = dcmf
-        self.config_filter = config_filter
-        self.target_mode = target_mode  # (p)os (r)ot pr
-        self.use_imu = use_imu
-        self.add_nominal_offsets = add_nominal_offsets
-
-        self.include_beta = include_beta
-
-        super().__init__()
         # DH
         self.n_dh = len(self.dh)
         self.dh_bool_c = np.vstack((dh_bool_torso, dh_bool_arm, dh_bool_arm, dh_bool_head))
@@ -142,40 +133,15 @@ class Justin19Calib(Justin19):
         # CP
         self.n_cp = len(self.dh)
         self.cp = np.zeros((self.n_cp, 3))
-        self.cp_loop = cp_loop
         self.cp_bool_c = np.vstack((cp_bool_torso, cp_bool_arm, cp_bool_arm, cp_bool_head))
 
         # FR
-        self.fr0 = fr0
-        self.n_fr = 3
-        if fr0:
-            self.fr = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
-        else:
-            self.fr = np.stack((np.eye(4), np.eye(4), np.eye(4)), axis=0)
-
+        self.fr = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
         self.idx_fr = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
         self.fr_c = fr_bool_robot
+        self.n_fr = len(self.fr)
+
 
         # MA
-        self.ma0 = ma0
         self.n_ma = len(self.masses)
-        if ma0:
-            self.ma = np.hstack((jtp.MASS_POS[:, :3], jtp.MASSES[:, np.newaxis] / 100))
-        else:
-            self.ma = np.zeros((self.n_ma, 4))
-
-
-# rad / Nm
-# N = kg * m / s2
-# 1kg * 1m -> 10Nm
-
-#  10 kN / rad
-
-#  compliance      *  m * kg * g  [in mm]
-# (1 / (20 * 1000) *  1 * 10 * 10) * 1000  -> 5mm
-
-# FINDING
-#   stiffness [Nm / rad] ~ cp [rad / Nm]->  1e4 ~ 1e-4
-#   cp ~ 5e-5 <-> 20kNm/rad (don't forget factor x100)
-# 0.1 rad/kNm
-# 0.1 m
+        self.ma = np.hstack((jtp.MASS_POS[:, :3], jtp.MASSES[:, np.newaxis] / 100))

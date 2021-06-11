@@ -13,7 +13,7 @@ from Optimizer import feasibility_check as fc, choose_optimum
 
 
 import Optimizer.path as path
-from definitions import *
+from rocal.definitions import *
 import parameter
 from Kinematic.Robots import Justin19, com
 
@@ -45,7 +45,7 @@ par.check.self_collision = True
 
 # Model for obstacle collision
 exclude_frames = []  # Base-0, Right_Hand-13, Left_Hand-22
-par.oc.active_spheres = get_exclusion_mask(a=jtp.SPHERES_FRAME_IDX, exclude_values=exclude_frames)
+par.oc.active_spheres = get_exclusion_mask(a=jtp.SPHERES_F_IDX, exclude_values=exclude_frames)
 
 par.oc.n_substeps = 2
 par.oc.n_substeps = 2

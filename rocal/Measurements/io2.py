@@ -254,7 +254,7 @@ def save_m(directory, cal_rob, arr):
 
 ########################################################################################################################
 def get_q(cal_rob, split, seed=0):
-    from definitions import ICHR20_CALIBRATION
+    from rocal.definitions import ICHR20_CALIBRATION
 
     directory = ICHR20_CALIBRATION + '/Measurements/600'
     measurement_file = directory + '/measurements_600.npy'

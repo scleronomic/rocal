@@ -1,8 +1,7 @@
 import numpy as np
-from wzk.mpl import (new_fig, save_fig, set_style, plt,
-                     correlation_plot)
+from wzk.mpl import (new_fig, save_fig, set_style)
 
-from definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION
 
 from Justin.Calibration.OptimalDesign.get_calibration_sets import setup
 # from Justin.Calibration import greedy

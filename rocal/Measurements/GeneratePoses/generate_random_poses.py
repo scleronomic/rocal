@@ -6,7 +6,6 @@ from wzk.mpl import new_fig, subplot_grid
 from wzk import tsp, get_timestamp, print_correlation, ray_sphere_intersection_2, print_progress
 
 import Optimizer.self_collision
-import self_collision
 from Kinematic import forward, sample_configurations as sample, frames as fr
 from Kinematic.Robots import Justin19, com
 import Justin.parameter_torso as jtp
@@ -17,7 +16,7 @@ import Optimizer.feasibility_check as fc
 import Util.Visualization.justin_mayavi as ja
 import Util.Visualization.plotting_2 as plt2
 
-from definitions import ICHR20_CALIBRATION_DATA, ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION_DATA
 import parameter
 
 # Parameter
@@ -61,39 +60,39 @@ camera_pos_uncertainty = 0.1  # m -> add this value to the spheres
 
 target_right_sphere_idx = 28
 sphere_radius_occlusion_right = jtp.SPHERES_RAD.copy()
-for i, sfi in enumerate(jtp.SPHERES_FRAME_IDX):
+for i, sfi in enumerate(jtp.SPHERES_F_IDX):
     if sfi not in jtp.IDX_F_RIGHT:
         sphere_radius_occlusion_right[i] += camera_pos_uncertainty
-sphere_radius_occlusion_right[jtp.SPHERES_FRAME_IDX == 12] = -1
-sphere_radius_occlusion_right[jtp.SPHERES_FRAME_IDX == 13] = -1
+sphere_radius_occlusion_right[jtp.SPHERES_F_IDX == 12] = -1
+sphere_radius_occlusion_right[jtp.SPHERES_F_IDX == 13] = -1
 # show_justin_spheres(r=sphere_radius_occlusion_right)
 
 target_left_sphere_idx = 42
 sphere_radius_occlusion_left = jtp.SPHERES_RAD.copy()
-for i, sfi in enumerate(jtp.SPHERES_FRAME_IDX):
+for i, sfi in enumerate(jtp.SPHERES_F_IDX):
     if sfi not in jtp.IDX_F_LEFT:
         sphere_radius_occlusion_left[i] += camera_pos_uncertainty
-sphere_radius_occlusion_left[jtp.SPHERES_FRAME_IDX == 21] = -1
-sphere_radius_occlusion_left[jtp.SPHERES_FRAME_IDX == 22] = -1
+sphere_radius_occlusion_left[jtp.SPHERES_F_IDX == 21] = -1
+sphere_radius_occlusion_left[jtp.SPHERES_F_IDX == 22] = -1
 # show_justin_spheres(r=sphere_radius_occlusion_left)
 
 target_head_sphere_idx = 46
 sphere_radius_occlusion_head = jtp.SPHERES_RAD.copy()
-for i, sfi in enumerate(jtp.SPHERES_FRAME_IDX):
+for i, sfi in enumerate(jtp.SPHERES_F_IDX):
     if sfi not in jtp.IDX_F_HEAD and sfi not in jtp.F_TORSO_BASE:
         sphere_radius_occlusion_head[i] += camera_pos_uncertainty
 for i in jtp.IDX_F_HEAD:
-    sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == i] = -1
+    sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == i] = -1
 for i in jtp.IDX_F_TORSO:
-    sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == i] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_RIGHT_BASE] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_RIGHT_BASE + 1] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_RIGHT_BASE + 2] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_RIGHT_BASE + 3] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_LEFT_BASE] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_LEFT_BASE + 1] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_LEFT_BASE + 2] = -1
-sphere_radius_occlusion_head[jtp.SPHERES_FRAME_IDX == jtp.IDX_F_LEFT_BASE + 3] = -1
+    sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == i] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_RIGHT_BASE] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_RIGHT_BASE + 1] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_RIGHT_BASE + 2] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_RIGHT_BASE + 3] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_LEFT_BASE] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_LEFT_BASE + 1] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_LEFT_BASE + 2] = -1
+sphere_radius_occlusion_head[jtp.SPHERES_F_IDX == jtp.IDX_F_LEFT_BASE + 3] = -1
 # show_justin_spheres(r=sphere_radius_occlusion_head)
 
 # No collision with floor
@@ -440,7 +439,7 @@ def order(q, q2):
 #
 
 # q, qb = np.load('front_tcp_calibration.npy')
-from Justin.Calibration.use import load_get_corrected_q_opt, load_calibrated_kinematic, load_get_corrected_q_lin
+from Justin.Calibration.use import load_get_corrected_q_lin
 
 
 # qb = get_corrected_q2(q=q[:, 0])[:, np.newaxis]

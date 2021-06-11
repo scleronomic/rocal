@@ -1,14 +1,13 @@
 import numpy as np
 
-from calibration import kinematic
-from Measurements.io2 import get_q
+from rocal.calibration import kinematic
+from rocal.Measurements.io2 import get_q
 
-from justin import Justin19Calib
+from rocal.Robots.Justin19 import Justin19Cal
 
 from wzk.spatial import frame_difference
 from wzk.mpl import new_fig, save_fig, set_style, set_borders
-from wzk.mpl import add_safety_limits
-from definitions import ICHR20_CALIBRATION, ICHR20_CALIBRATION_FIGS
+from rocal.definitions import ICHR20_CALIBRATION, ICHR20_CALIBRATION_FIGS
 
 from matplotlib.patches import Rectangle
 
@@ -23,9 +22,9 @@ def add_margin(ax, pad, **kwargs):
 
 
 # Nominal
-cal_rob0 = Justin19Calib(dcmf='000c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
-cal_rob1 = Justin19Calib(dcmf='f00c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
-cal_rob2 = Justin19Calib(dcmf='ff0c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
+cal_rob0 = Justin19Cal(dcmf='000c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
+cal_rob1 = Justin19Cal(dcmf='f00c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
+cal_rob2 = Justin19Cal(dcmf='ff0c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
 
 (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob2, split=-1, seed=75)
 

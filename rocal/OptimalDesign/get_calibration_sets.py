@@ -1,15 +1,11 @@
-import os
 import numpy as np
-from scipy.stats import linregress
 
-from Justin.Calibration import calibration
-from Justin.Calibration.OptimalDesign.oed import random, detmax, greedy, task_a_optimality_wrapper
+from Justin.Calibration.OptimalDesign.oed import random, detmax, greedy
 from Kinematic.Robots import Justin19
 
-from wzk import random_subset, numeric_derivative, change_tuple_order, tic, toc, uuid4, get_timestamp
-from wzk.mpl import new_fig, save_fig, save_all, correlation_plot, set_style
+from wzk import random_subset, change_tuple_order, get_timestamp
 
-from definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION
 
 
 robot = Justin19

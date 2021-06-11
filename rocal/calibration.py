@@ -5,7 +5,7 @@ import pyOpt
 
 from mopla.Kinematic import forward
 
-from util_plotting import print_frame_difference, plot_frame_difference
+from rocal.Plots.util_plotting import print_frame_difference, plot_frame_difference
 from wzk.spatial import invert, frame2trans_rotvec, trans_rotvec2frame, frame_difference_cost, frame_difference
 from wzk.files import safe_create_dir
 from wzk.math2 import random_subset, numeric_derivative

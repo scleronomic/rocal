@@ -1,10 +1,9 @@
 import numpy as np
 
-from calibration import (kinematic, unwrap_x)
-from Measurements.io2 import load_q
-from justin import Justin19Calib
+from rocal.calibration import (kinematic, unwrap_x)
+from rocal.Robots.Justin19 import Justin19Cal
 
-from definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION
 from wzk.mpl import new_fig, save_fig, set_style, set_borders
 
 directory = ICHR20_CALIBRATION
@@ -34,8 +33,8 @@ def plot():
     n_iter = 10
     n_iter_show = 5
 
-    cal_rob = Justin19Calib(dcmf='0c00', cp_loop=0, config_filter='ff', use_imu=False, fr0=False,
-                            add_nominal_offsets=True)
+    cal_rob = Justin19Cal(dcmf='0c00', cp_loop=0, config_filter='ff', use_imu=False, fr0=False,
+                          add_nominal_offsets=True)
     x_dict = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff.npy", allow_pickle=True)[0]
     cp = x_dict['cp']
     cp = cp[cp != 0]

@@ -1,6 +1,14 @@
+import numpy as np
+
+from rocal.Robots import Justin19Cal
+
+from rocal.calibration import calibrate, unwrap_x
+from rocal.Measurements.io2 import get_q, get_parameter_identifier
+
+
 def iterative_mass_compliance():
 
-    cal_rob = Justin19Calib(dcmf='cc0c', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+    cal_rob = Justin19Cal(dcmf='cc0c', use_imu=True, cp_loop=0)
 
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=200, seed=75)
 
@@ -8,13 +16,13 @@ def iterative_mass_compliance():
     for i in range(20):
         print(i)
         if i % 3 == 0:
-            cal_rob = Justin19Calib(dcmf='cc0c', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dcmf='cc0c', use_imu=True, cp_loop=0)
 
         elif i % 3 == 1:
-            cal_rob = Justin19Calib(dcmf='00p0', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dcmf='00p0', use_imu=True, cp_loop=0)
 
         elif i % 3 == 2:
-            cal_rob = Justin19Calib(dcmf='00m0', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dcmf='00m0', use_imu=True, cp_loop=0)
 
         if i > 0:
             cal_rob.dh = x['dh']

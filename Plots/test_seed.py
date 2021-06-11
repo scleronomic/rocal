@@ -3,18 +3,17 @@ import ray
 
 from wzk import change_tuple_order, object2numeric_array
 
-from calibration import calibrate
-from Measurements.io2 import get_q
+from rocal.calibration import calibrate
+from rocal.Measurements.io2 import get_q
 
-from definitions import ICHR20_CALIBRATION
-from justin import Justin19Calib
-from main import cal_rob
+from rocal.definitions import ICHR20_CALIBRATION
+from rocal.Robots.Justin19 import Justin19Cal
 
 
 def test_seed():
     ray.init(address='auto')
 
-    cal_rob = Justin19Calib(dcmf='cc0c', ma0=True, fr0=True, use_imu=False, cp_loop=0)
+    cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=False, cp_loop=0)
 
     @ray.remote
     def calibrate_ray2(seed):

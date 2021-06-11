@@ -2,9 +2,9 @@ import numpy as np
 
 from scipy.stats import norm
 from wzk import object2numeric_array
-from wzk.mpl import new_fig, save_fig, set_style, set_borders, remove_ticks
+from wzk.mpl import new_fig, save_fig, set_style, set_borders
 
-from definitions import ICHR20_CALIBRATION, ICHR20_CALIBRATION_FIGS
+from rocal.definitions import ICHR20_CALIBRATION, ICHR20_CALIBRATION_FIGS
 
 set_style(s=('ieee',))
 set_borders(left=0.15, right=0.95, bottom=0.175, top=0.95)

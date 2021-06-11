@@ -1,10 +1,10 @@
 import numpy as np
 from wzk.mpl import (new_fig, save_fig, turn_ticks_off, get_pip, set_style,
-                     geometry, figure, patches, golden_ratio,
-                     get_aff_trafo, RelativeFancyArrow, FancyArrowX2, FancyBbox)
+                     geometry, patches, golden_ratio,
+                     FancyArrowX2, FancyBbox)
 
 from mopla.Visualization import humanoid_robot_2d
-from definitions import ICHR20_CALIBRATION_FIGS
+from rocal.definitions import ICHR20_CALIBRATION_FIGS
 
 # INFO for 2columns look at commit "Calibration Sketch 2 columns"  / 4ff8c36a
 # INFO for 1columns look at commit "Calibration Sketch 1 column"  / ???

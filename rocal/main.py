@@ -1,9 +1,7 @@
-import numpy as np
+from calibration import calibrate
+from rocal.Measurements.io2 import get_q
 
-from calibration import calibrate, unwrap_x
-from Measurements.io2 import get_q, get_parameter_identifier
-
-from justin import Justin19Calib
+from rocal.Robots.Justin19 import Justin19Cal
 from definitions import ICHR20_CALIBRATION
 
 from wzk.spatial import trans_rotvec2frame
@@ -30,16 +28,18 @@ cal_par = CalibrationParameter()
 
 
 def search_world_frame(_cal_rob, q, t):
-    # FINDING its hard / impossible to find the correct world frame if it the initial guess is far off
-    #   -> try multi start and safe the good fits
+    """
+    its hard / impossible to find the correct world frame if it the initial guess is far off
+       -> try multi start and safe the good fits
+    """
     n = 100
     threshold = 0.1  # m
     for i in range(n):
-        x, stats = calibrate(q_cal=q, t_cal=t, q_test=q, t_test=t, x0_noise=0.1, verbose=0,
-                             cal_rob=_cal_rob, cal_par=cal_par)
-        if stats[0, 0, 0] < threshold:
-            print(stats[:, 0, 0].meand(axis=0))
-            print(trans_rotvec2frame(trans=x[:3], rotvec=x[3:6]))
+        _x, _stats = calibrate(q_cal=q, t_cal=t, q_test=q, t_test=t, x0_noise=0.1, verbose=0,
+                               cal_rob=_cal_rob, cal_par=cal_par)
+        if _stats[0, 0, 0] < threshold:
+            print(_stats[:, 0, 0].meand(axis=0))
+            print(trans_rotvec2frame(trans=_x[:3], rotvec=_x[3:6]))
 
 
 if __name__ == '__main__':
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # leave_one_out_analysis_joints()
     # test_static_equilibrium_truncation()
 
-    cal_rob = Justin19Calib(dcmf='000c', ma0=True, fr0=True, use_imu=False, cp_loop=1)
+    cal_rob = Justin19Cal(dcmf='000c', ma0=True, fr0=True, use_imu=False, cp_loop=1)
 
     directory = ICHR20_CALIBRATION + '/Measurements/600'
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
@@ -69,7 +69,6 @@ if __name__ == '__main__':
     # # x0 = x
 
     # f0 = kinematic(cal_rob=cal_rob, q=q0, **xn)
-
 
     #
     # dcmf = 'cc0c'
@@ -113,8 +112,6 @@ if __name__ == '__main__':
     # x, stats = change_tuple_order(calibrate2(q_cal=q_cal, t_cal=t_cal, q_test=q_test, t_test=t_test, c=c, verbose=1)
     #                               for _ in range(20))
     # toc()
-
-
 
     # def calibrate_1_to_n(directory, idx_list):
     #

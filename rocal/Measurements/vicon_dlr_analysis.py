@@ -3,15 +3,15 @@ from itertools import combinations
 
 from wzk.mpl import new_fig, save_fig, remove_duplicate_labels
 from wzk.spatial import invert, Rotation
-from Measurements import vicon_dlr, io2
-from util_plotting import scatter_measurements_3d, plot_projections_2d
+from rocal.Measurements import io2
+from rocal.Plots.util_plotting import scatter_measurements_3d, plot_projections_2d
 
 from Calibration.use import load_calibrated_kinematic
 
 from mopla.Kinematic.forward import get_frames_x
 from mopla.Kinematic.Robots.Justin19 import Justin19
 
-from definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION
 
 robot = Justin19()
 
