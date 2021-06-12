@@ -1,11 +1,13 @@
 import numpy as np
 
-
 from wzk.mpl import new_fig, save_fig, correlation_plot, hist_vlines
 from wzk import euclidean_norm, numeric_derivative, random_subset, change_tuple_order
+from scipy.optimize import minimize as minimize_scipy
 
-from Justin.Calibration.OptimalDesign.oed import (task_a_optimality_wrapper, d_optimality_wrapper, greedy,
-                                                  detmax, configuration_histogram)
+from Plots.util import true_best_with_noises
+
+from rocal.OptimalDesign.oed import (task_a_optimality_wrapper, d_optimality_wrapper, greedy,
+                                     detmax, configuration_histogram)
 
 
 # Finding The optimal Task-A Criterion is all values = 1 -> maximal, but if all points are the same
@@ -37,7 +39,7 @@ from Justin.Calibration.OptimalDesign.oed import (task_a_optimality_wrapper, d_o
 # raised to the power 1/p, where p is the number of unknown model parameters.
 
 #
-# Drive Justin a few tinmes to the same positions to get a feeling for the measurement error
+# Drive Justin a few times to the same positions to get a feeling for the measurement error
 # measurement noise
 class Model:
     def __init__(self, nx, ny):
@@ -81,8 +83,7 @@ class Model:
             measurement_noise = self.measurement_noise
 
         y = self.forward(x=x, p_true=self.p_true)
-        noise = np.random.normal(loc=0, scale=measurement_noise, size=y.shape)
-        # noise = measurement_noise*np.cos(x.sum(-1, keepdims=True))
+        noise = np.random.normal(loc=0, scale=measurement_noise, size=np.shape(y))
         y += noise
 
         return x, y, noise
@@ -111,7 +112,7 @@ class Diagonal(Linear):
         assert nx == ny
         super(Diagonal, self).__init__(nx=nx, ny=ny)
 
-    def initialize_parameters(self, max_parameter_error):
+    def initialize_parameters(self, max_parameter_error, mode=None):
         self.p_nominal = np.eye(self.nx) * np.random.random(self.nx)
         self.p_error = np.eye(self.nx) * (np.random.random((self.ny, self.nx)) * 2 - 1) * max_parameter_error
         self.p_true = self.p_nominal + self.p_error
@@ -146,13 +147,13 @@ class Arm2d(Model):
         self.p_true = self.p_nominal + self.p_error
 
     @staticmethod
-    def arm2d(self, q, l):
+    def arm2d(q, l):
         q_cs = np.cumsum(q, axis=-1)
         tcp = np.stack([(np.cos(q_cs) * l).sum(axis=-1), (np.sin(q_cs) * l).sum(axis=-1)]).T
         return tcp
 
     def forward(self, x, p_true):
-        return Arm2d.arm2d(q=p_true[0, :] + x, l=p_true[1, :])
+        return self.arm2d(q=p_true[0, :] + x, l=p_true[1, :])
 
 
 def mse_prediction(model, p, x, y):
@@ -194,6 +195,8 @@ def main(n_cal=None):
     save = False
     n = 1000
 
+    prior_sigma = 0.01
+
     n_test = 1000
     n_cal = 4
     n_calset = 1000
@@ -206,9 +209,9 @@ def main(n_cal=None):
     # np.random.seed(0)
     x0 = np.zeros(ny * nx)
     # x0 = np.zeros(nx)
-    aa = []
-    bb = []
-    cc = []
+    # aa = []
+    # bb = []
+    # cc = []
 
     # nnn = 30
     # for o in range(nnn):
@@ -237,7 +240,7 @@ def main(n_cal=None):
     jac_calset = numeric_derivative(fun=model.forward2_wrapper(x=x_calset), x=x0)
     jac_optval = numeric_derivative(fun=model.forward2_wrapper(x=x_optval), x=x0)
 
-    a_task_opt_fun = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_optval)
+    a_task_opt_fun = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_optval, prior_sigma=prior_sigma)
     d_opt_fun = d_optimality_wrapper(jac=jac_calset)
     idx_greedy_ota, greedy_ota = greedy(n=n_calset, k=n_cal, fun=a_task_opt_fun)
     idx_greedy_nota, greedy_nota = greedy(n=n_calset, k=n_cal, fun=lambda _idx: -a_task_opt_fun(_idx))
@@ -255,9 +258,9 @@ def main(n_cal=None):
 
     ota = a_task_opt_fun(idx=idx)
 
-
-    # Perfrom Calibration
+    # Perform Calibration
     mse_test_noise = []
+    mse_parameter, mse_test = None, None
     for i in range(100):
         x_calset, y_calset, noise_calset = model.create_dummy_data(measurement_noise=measurement_noise, x=x_calset)
 
@@ -277,10 +280,8 @@ def main(n_cal=None):
     ax.plot(ota[:n], mse_test_noise.mean(axis=0)[:n], color='r', ls='', marker='o')
     ax.plot(ota[n:n+len(idx_det)], mse_test_noise.mean(axis=0)[n:n+len(idx_det)], color='b', ls='', marker='o')
 
-    from A_Plots.Calibration2020.util import true_best_with_noises
     true_best_with_noises(err_r=mse_test_noise[:, :n], obj_r=ota[:n],
                           err_b=mse_test_noise[:, n:n+len(idx_det)], obj_b=ota[n:n+len(idx_det)])
-    return
 
     i = -4
     perc_ota_greedy_min = np.sum(mse_test[i] > mse_test[:n]) / n
@@ -291,9 +292,6 @@ def main(n_cal=None):
     print("{:.2} \t|  {:.2}  \t|  {:.3}  \t|  {:.3}".format(relative_perf, perc_ota_greedy_min, mse_parameter[i],
                                                             np.abs(noise_calset[idx[i]]).mean()))
 
-    if relative_perf > 0.5:
-        a = 1
-    #
     # return relative_perf, perc_ota_greedy_min, mse_parameter[i], np.abs(noise_calset[idx[i]]).mean(), rel_med
     ax = correlation_plot(a=mse_parameter, b=mse_test, name_a='MSE Parameter', name_b='MSE Prediction',
                           hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
@@ -308,7 +306,7 @@ def main(n_cal=None):
                             lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
-    perc_ota_greedy_min, perc_nota_greedy_max, perc_od_greedy_min, perc_nod_greedy_max = percs
+    # perc_ota_greedy_min, perc_nota_greedy_max, perc_od_greedy_min, perc_nod_greedy_max = percs
     ax, percs = hist_vlines(x=mse_parameter, bins=100, name='MSE Parameter',
                             hl_idx=[-4, -3, -2, -1], hl_color=['g', 'r', 'matrix', 'y'],
                             hl_name=['Greedy A-Min', 'Greedy A-Max', 'Greedy D-Min', 'Greedy D-Max'],
@@ -364,7 +362,6 @@ def main(n_cal=None):
     save_fig(fig=ax.get_figure(), save=save)
 
 
-
 main()
 #
 # for i in range(100):
@@ -403,8 +400,6 @@ main()
 
 
 # np.save(PROJECT_ROOT + 'abcde.npy', (a, b, c, d, e, []))
-
-
 
 
 # for nc in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -449,13 +444,8 @@ main()
 # greedy_max_perc = [768, 867, 833, 835, 659, 735, 774, 826, 795, 743, 710, 709, 757, 735]
 
 
-# fig, ax = new_fig(title='full, nx=5, ny=1', scale=2)
-#
+# fig, ax = new_fig(title='full, nx=5, ny=1', scale=2)#
 # ax.plot(n_cal, greedy_min_perc, marker='o', color='g', label='Greedy Min')
 # ax.plot(n_cal, greedy_max_perc, marker='o', color='r', label='Greedy Max')
 # ax.set_xlabel('Number of Measurement Points')
 # save_fig(fig=fig, formats='pdf')
-
-
-# a, b, b with n_test=1000 and n_cal=10
-

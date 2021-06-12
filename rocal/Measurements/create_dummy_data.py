@@ -6,7 +6,7 @@ from wzk.random2 import noise
 from rocal.calibration import kinematic, set_bool_dict_false, get_active_parameters
 # noinspection PyUnresolvedReferences
 from rocal.Measurements.io2 import load_q, save_m
-from rocal.Plots.util_plotting import hist_frame_difference
+from rocal.Plots.plotting import hist_frame_difference
 
 
 def get_dummy_parameters(cal_rob,

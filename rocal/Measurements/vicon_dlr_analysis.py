@@ -4,7 +4,7 @@ from itertools import combinations
 from wzk.mpl import new_fig, save_fig, remove_duplicate_labels
 from wzk.spatial import invert, Rotation
 from rocal.Measurements import io2
-from rocal.Plots.util_plotting import scatter_measurements_3d, plot_projections_2d
+from rocal.Plots.plotting import scatter_measurements_3d, plot_projections_2d
 
 from Calibration.use import load_calibrated_kinematic
 

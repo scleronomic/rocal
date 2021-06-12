@@ -1,9 +1,15 @@
 import numpy as np
 
-from rocal.Robots import Justin19Cal
 
-from rocal.calibration import calibrate, unwrap_x
+from rocal.Robots import Justin19Cal
 from rocal.Measurements.io2 import get_q, get_parameter_identifier
+from rocal.calibration import calibrate
+from rocal.parameter import unwrap_x, Parameter
+
+from rocal.definitions import ICHR20_CALIBRATION
+
+directory = ICHR20_CALIBRATION + '/Measurements/600'
+cal_par = Parameter()
 
 
 def iterative_mass_compliance():
@@ -37,7 +43,6 @@ def iterative_mass_compliance():
         stats_list.append(stats)
 
     save_file = get_parameter_identifier(cal_rob)
-    directory = ICHR20_CALIBRATION + '/Measurements/600'
     save_file = f'{directory}/results/{save_file}_iterative_mass_compliance.npy'
 
     np.save(save_file, (x_list, stats_list, []))

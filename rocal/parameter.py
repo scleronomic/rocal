@@ -5,10 +5,12 @@ import copy
 class Parameter:
     def __init__(self):
         # Justin, two marker
-        self.sigma_trans, self.sigma_rot = 1000, 0  # was 100
+        self.lambda_trans, self.lambda_rot = 1000, 0  # was 100
         self.f_weighting = [1, 1]
-
-        self.x_weighting = 0  #0.01  # was  0.01 for dummy
+        
+        self.prior_sigma = 0.01  # 0.01  # was  0.01 for dummy
+        self.mu_sigma = 0  #
+        
         self.method = 'PyOpt - SLSQP'  # way faster
         self.options = {'maxiter': 200,
                         'disp': True,

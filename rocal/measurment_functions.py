@@ -1,14 +1,14 @@
 import numpy as np
 
-from wzk.spatial import invert, frame2trans_rotvec, trans_rotvec2frame, frame_difference_cost, frame_difference
+from wzk.spatial import trans_rotvec2frame, frame_difference_cost
 from wzk.geometry import capsule_capsule
 from wzk import get_stats
 
-from rocal.Plots.util_plotting import plot_frame_difference
+from rocal.Plots.plotting import plot_frame_difference
 
 
 def measure_frame_difference(frame_a, frame_b, weighting=None,
-                             sigma_trans=1., sigma_rot=1.):
+                             lambda_trans=1., lambda_rot=1.):
 
     n_samples, n_frames, _, _ = frame_a.shape
 
@@ -20,7 +20,7 @@ def measure_frame_difference(frame_a, frame_b, weighting=None,
     cost_loc = np.sum(cost_loc * weighting)
     cost_rot = np.sum(cost_rot * weighting)
 
-    objective = cost_loc * sigma_trans + cost_rot * sigma_rot
+    objective = cost_loc * lambda_trans + cost_rot * lambda_rot
     return objective
 
 
@@ -41,7 +41,7 @@ def build_objective_cal_marker(q, t,
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
         obj = measure_frame_difference(frame_a=t2, frame_b=t, weighting=cal_par.f_weighting,
-                                       sigma_trans=cal_par.sigma_trans, sigma_rot=cal_par.sigma_rot)
+                                       lambda_trans=cal_par.lambda_trans, lambda_rot=cal_par.lambda_rot)
 
         if cal_par.x_weighting != 0:
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
@@ -56,10 +56,10 @@ def build_objective_cal_marker(q, t,
 
 
 def build_objective_compensation(frame,
-                               kin_fun,
-                               q0, q_active_bool=None,
-                               f_weighting=None, sigma_trans=1000., sigma_rot=1000.,
-                               x_weighting=0, x_nominal=0):
+                                 kin_fun,
+                                 q0, q_active_bool=None,
+                                 f_weighting=None, lambda_trans=1000., lambda_rot=1000.,
+                                 x_weighting=0, x_nominal=0):
 
     def objective(x):
 
@@ -69,7 +69,7 @@ def build_objective_compensation(frame,
         frame2 = kin_fun(q=q)
 
         obj = measure_frame_difference(frame_a=frame, frame_b=frame2, weighting=f_weighting,
-                                       sigma_rot=sigma_rot, sigma_trans=sigma_trans)
+                                       lambda_rot=lambda_rot, lambda_trans=lambda_trans)
 
         if x_weighting != 0:
             obj += (x_weighting*(x - x_nominal)**2).mean()
@@ -127,7 +127,7 @@ def build_objective_cal_touch(q, t,
             stats = get_stats(np.abs(d-t))
             return stats, obj
 
-        obj += __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=0.1)
+        obj += __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)
         return obj
 
     return objective
@@ -135,5 +135,3 @@ def build_objective_cal_touch(q, t,
 
 meas_fun_dict = dict(marker=build_objective_cal_marker,
                      touch=build_objective_cal_touch)
-
-

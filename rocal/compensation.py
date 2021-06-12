@@ -4,9 +4,9 @@ from wzk.spatial import invert, frame2trans_rotvec, frame_difference
 from wzk.math2 import numeric_derivative
 from wzk.printing import print_progress
 
-from rocal.calibration import minimize
+from rocal.calibration import minimize_slsqp
 from rocal.measurment_functions import build_objective_compensation
-from rocal.Plots.util_plotting import print_frame_difference
+from rocal.Plots.plotting import print_frame_difference
 
 
 def get_corrected_q_opt_wrapper(kin_fun, kin_fun_n=None,
@@ -28,7 +28,6 @@ def get_corrected_q_opt(q_list, f_list,
                         x_weighting=0, f_weighting=None,
                         verbose=1):
 
-    method = 'PyOpt - SLSQP'
     options = {'maxiter': 100, 'disp': False, 'ftol': 1e-8}
     q_list_new = q_list.copy()
 
@@ -42,7 +41,7 @@ def get_corrected_q_opt(q_list, f_list,
         obj = build_objective_compensation(frame=f[np.newaxis, :, :, :], kin_fun=kin_fun,
                                            q0=q[np.newaxis, :], q_active_bool=q_active_bool,
                                            x_weighting=x_weighting, f_weighting=f_weighting)
-        q_res = minimize(fun=obj, x0=np.zeros(q_active_bool.sum()), method=method, options=options, verbose=verbose-1)
+        q_res = minimize_slsqp(fun=obj, x0=np.zeros(q_active_bool.sum()), options=options, verbose=verbose-1)
 
         q_list_new[i, q_active_bool] += q_res
 
@@ -71,13 +70,13 @@ def get_corrected_q_lin(q, f, kin_fun,
     mode_fd = 'forward'
 
     def __f2flat(_f):
-        n_samples, n_cmames, _, _ = _f.shape
-        return np.concatenate(frame2trans_rotvec(_f), axis=-1).reshape((n_samples, n_cmames * 6))
+        n_samples, n_frames, _, _ = _f.shape
+        return np.concatenate(frame2trans_rotvec(_f), axis=-1).reshape((n_samples, n_frames * 6))
 
     def __j2flat(j):
-        n_samples, n_cmames, _, _, n_dof = j.shape
+        n_samples, n_frames, _, _, n_dof = j.shape
         return np.concatenate(frame2trans_rotvec(j.transpose(0, 4, 1, 2, 3)), axis=-1
-                              ).reshape((n_samples, n_dof, n_cmames * 6)).transpose(0, 2, 1)
+                              ).reshape((n_samples, n_dof, n_frames * 6)).transpose(0, 2, 1)
 
     def __diff_frame(a, b):
         # finite differences: eps can only be used in the complete representation, not in 4x4 -> apply later

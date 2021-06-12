@@ -1,25 +1,21 @@
 import numpy as np
 
 from wzk import new_fig, k_farthest_neighbors, tsp
-from Kinematic import forward, frame_difference, frames as cm, sample_q
+from wzk.spatial import frame_difference, invert
 
-from Justin.Calibration import get_frame_arm_tcp_wrapper, get_corrected_q
-import Justin.Calibration.Measurements.GeneratePoses.combine_poses as combine
-import Justin.primitives_torso as pp
-from Justin import parameter_torso as jtp
 
-import Util.Visualization.justin_mayavi as ja
-import parameter
+import mopla.Justin.primitives_torso as pp
+from mopla.Visualization.pyvista2.pyvista2 import sphere_path_animation
+from rocal.Robots import Justin19Cal
 
-robot = parameter.initialize_robot_par(robot_id='Justin19')
-robot.f_world_robot = np.eye(4)
+robot = Justin19Cal()
 
-get_frame_arm_tcp = get_frame_arm_tcp_wrapper(file_results='selected_dh_torques_xyz')
+# get_frame_arm_tcp = get_frame_arm_tcp_wrapper(file_results='selected_dh_torques_xyz')
 # get_frame_arm_tcp = get_frame_arm_tcp_wrapper(file_results='selected_dh_torques_z')
 
 
 def get_q_rand(n=10000):
-    q = sample_q(n_samples=n, robot=robot)
+    q = robot.sample_q(n)
     validate_q(q)
 
 
@@ -75,10 +71,10 @@ def get_q_circus():
 def validate_q(q):
 
     q[..., 0] = 0
-    frames = forward.get_frames(q=q, robot=robot)
+    frames = robot.get_frames(q=q)
 
     f_target_cal = get_frame_arm_tcp(q=q)
-    f_target = frames[:, 0, jtp.IDX_F_RIGHT_TCP, :, :]
+    f_target = frames[:, 0, 13, :, :]
 
     trans_diff, rot_diff = frame_difference(f_target_cal, f_target)
 
@@ -92,7 +88,7 @@ def validate_q(q):
     m_dist_x = x_target_diff[np.newaxis, :, :] - x_target_diff[:, np.newaxis, :]
     m_dist_x_norm = np.linalg.norm(m_dist_x, axis=-1)
 
-    worst_rel_diff = m_dist_x_norm.max()
+    worst_rel_diff = m_dist_x_norm.max(initial=0)
     idx_worst_rel_diff = np.unravel_index(np.argmax(m_dist_x_norm), shape=m_dist_x_norm.shape)
     print(f"Worst relative tcp difference between to configurations {worst_rel_diff}m")
 
@@ -111,8 +107,8 @@ def validate_q(q):
 
     # 0 1 3 7 9
     # idx_kfn_x_rel
-    ja.sphere_path_animation(q=q_kfn_x_rel, robot=robot,
-                             show_frames=np.array([13, 22]))
+    sphere_path_animation(q=q_kfn_x_rel, robot=robot,
+                          show_frames=np.array([13, 22]))
 
     fig, ax = new_fig()
     ax.hist(m_dist_x_norm.ravel(), bins=100)
@@ -131,8 +127,8 @@ def get_dance(q_list, verbose=1):
     q_list = np.concatenate([q_getready, q_list[route], q_zero, q_getready])
 
     if verbose > 0:
-        ja.sphere_path_animation(q=q_list, robot=combine.par.robot,
-                                 show_frames=np.array([13, 22]), additional_frames=None)
+        sphere_path_animation(q=q_list, robot=robot,
+                              show_frames=np.array([13, 22]), additional_frames=None)
 
     q_path_list = combine.calculate_trajectories_between(q_list=q_list, par=combine.par, gd=combine.gd)
 
@@ -145,8 +141,8 @@ def get_dance(q_list, verbose=1):
 
 
 def plot_smooth_dance(q_path_list_smooth=None):
-    ja.sphere_path_animation(q=np.concatenate(q_path_list_smooth), robot=combine.par.robot,
-                             show_frames=np.array([13, 22]), additional_frames=None)
+    sphere_path_animation(q=np.concatenate(q_path_list_smooth), robot=combine.par.robot,
+                          show_frames=np.array([13, 22]), additional_frames=None)
 
 
 def write(q_list, q_path_list, file):
@@ -160,7 +156,7 @@ def get_calibrated_path(points_file):
 
     q_list = np.load(points_file)[1:-1].reshape(-1, 1, 19)
 
-    frame_list = forward.get_frames(q=q_list, robot=robot)[:, :, jtp.IDX_F_RIGHT_TCP, :, :]
+    frame_list = robot.get_frames(q=q_list)[:, :, jtp.IDX_F_RIGHT_TCP, :, :]
     q_active_bool = np.zeros(19, dtype=bool)
     q_active_bool[:10] = True
     q_list_cal = get_corrected_q(q_list[:, 0, :], frame_list,
@@ -211,3 +207,4 @@ def visualize_relative_error():
                           frame_names=('Calibration', 'No Calibration'), verbose=2)
 
     save_plots(file_res+'relative')
+

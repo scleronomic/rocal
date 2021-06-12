@@ -10,16 +10,16 @@ from wzk.mpl import new_fig, save_all, error_area, plot_projections_2d
 # Visualization
 def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
     """
-    Return an array (n_cmames, 2, 5) where the stats (wzk.mathematics.get_stats())
+    Return an array (n_frames, 2, 5) where the stats (wzk.mathematics.get_stats())
     for translational and rotational differences are combined
     """
-    n_samples, n_cmames, _, _ = f0.shape
+    n_samples, n_frames, _, _ = f0.shape
     if frame_names is None:
-        frame_names = str0_to_n(s='Frame_', n=n_cmames)
+        frame_names = str0_to_n(s='Frame_', n=n_frames)
     else:
-        assert n_cmames == len(frame_names)
+        assert n_frames == len(frame_names)
 
-    stats = np.empty((n_cmames, 2, 5))
+    stats = np.empty((n_frames, 2, 5))
     for i, fname in enumerate(frame_names):
         d_trans, d_rot = frame_difference(f0[:, i, :, :], f1[:, i, :, :])
         stats[i, 0, :] = get_stats(x=d_trans, return_array=True)
@@ -68,7 +68,9 @@ def print_frame_difference(f1=None, f2=None,
         print(title)
 
     d_trans, mmm = mm_wrapper(x=d_trans, mm=mm)
-    stats = print_stats(d_trans, np.rad2deg(d_rot), names=[f'Translation [{mmm}]', 'Rotation [deg]'])
+    d_rot = np.rad2deg(d_rot)
+
+    stats = print_stats(d_trans, d_rot, names=[f'Translation [{mmm}]', 'Rotation [deg]'])
     return (d_trans, d_rot), stats
 
 
@@ -79,14 +81,17 @@ def hist_frame_difference(f1=None, f2=None,
     if d_trans is None or d_rot is None:
         d_trans, d_rot = frame_difference(f1, f2)
 
+    d_trans, mmm = mm_wrapper(d_trans, mm)
+    d_rot = np.rad2deg(d_rot)
+
     fig, ax = new_fig(n_cols=3, title=title, width=10)
     ax[0].hist(d_trans, bins=bins, **kwargs)
-    ax[0].set_xlabel('meter')
-    ax[1].hist(np.rad2deg(d_rot), bins=bins, **kwargs)
-    ax[1].set_xlabel('degree')
-    ax[2].plot(d_trans, np.rad2deg(d_rot), ls='', marker='o', alpha=0.7, **kwargs)
-    ax[2].set_xlabel('meter')
-    ax[2].set_ylabel('degree')
+    ax[0].set_xlabel(mmm)
+    ax[1].hist(d_rot, bins=bins, **kwargs)
+    ax[1].set_xlabel('deg')
+    ax[2].plot(d_trans, d_rot, ls='', marker='o', alpha=0.7, **kwargs)
+    ax[2].set_xlabel(mmm)
+    ax[2].set_ylabel('deg')
     return fig
 
 

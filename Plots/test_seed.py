@@ -8,6 +8,10 @@ from rocal.Measurements.io2 import get_q
 
 from rocal.definitions import ICHR20_CALIBRATION
 from rocal.Robots.Justin19 import Justin19Cal
+from rocal.parameter import Parameter
+
+
+cal_par = Parameter()
 
 
 def test_seed():
@@ -26,7 +30,7 @@ def test_seed():
         futures.append(calibrate_ray2.remote(seed))
 
     x_all, stats_all = change_tuple_order(ray.get(futures))
-    np.save(ICHR20_CALIBRATION + f'/600_seed_influence_rot{cal_par.sigma_rot}.npy',
+    np.save(ICHR20_CALIBRATION + f'/600_seed_influence_rot{cal_par.lambda_rot}.npy',
             (object2numeric_array(x_all), object2numeric_array(stats_all), []))
 
 

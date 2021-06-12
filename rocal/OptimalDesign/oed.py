@@ -6,20 +6,20 @@ from wzk import random_subset, mp_wrapper
 from wzk.mpl import new_fig, subplot_grid
 
 
-def covariance(jac, prior):
+def covariance(jac, prior_sigma):
     s = jac.shape
     jac2 = jac.reshape(s[:-3] + (s[-3]*s[-2], s[-1]))
-    return np.linalg.inv((np.swapaxes(jac2, -1, -2) @ jac2 + np.eye(s[-1])*prior))
+    return np.linalg.inv((np.swapaxes(jac2, -1, -2) @ jac2 + np.eye(s[-1]) * prior_sigma))
 
 
-def covariance_wrapper(jac, prior):
+def covariance_wrapper(jac, prior_sigma):
     def __covariance(idx):
-        return covariance(jac=jac[idx], prior=prior)
+        return covariance(jac=jac[idx], prior_sigma=prior_sigma)
 
     return __covariance
 
 
-def task_a_optimality_wrapper(jac_calset, prior, jac_test=None, sum_jac_jac=None, verbose=0):
+def task_a_optimality_wrapper(jac_calset, prior_sigma, jac_test=None, sum_jac_jac=None, verbose=0):
     """
     Simplification as used by Carrillo 2013.
     Results are the same, just much faster to compute
@@ -36,7 +36,7 @@ def task_a_optimality_wrapper(jac_calset, prior, jac_test=None, sum_jac_jac=None
     if verbose > 0:
         print('sum(J.T @ J)', sum_jac_jac)
 
-    cov_wrapper = covariance_wrapper(jac=jac_calset, prior=prior)
+    cov_wrapper = covariance_wrapper(jac=jac_calset, prior_sigma=prior_sigma)
 
     def task_a_optimality(idx):
         return np.trace(cov_wrapper(idx=idx) @ sum_jac_jac, axis1=-2, axis2=-1)
@@ -52,6 +52,7 @@ def test_task_a_optimality_simplification():
     n = 12
     n_y = 10
     n_p = 20
+    prior_sigma = 0.17
 
     jac_test = np.random.random((n_test, n_y, n_p))
     jac_calset = np.random.random((n_calset, n_y, n_p))
@@ -59,7 +60,7 @@ def test_task_a_optimality_simplification():
 
     def task_a_optimality_explicit(_idx):
         """use explicit formula"""
-        cov_wrapper = covariance_wrapper(jac=jac_calset)
+        cov_wrapper = covariance_wrapper(jac=jac_calset, prior_sigma=prior_sigma)
         cov = cov_wrapper(idx=idx)
         b = 0
         for jt in jac_test:
@@ -67,7 +68,8 @@ def test_task_a_optimality_simplification():
         b /= len(jac_test)
         return b
 
-    task_a_optimality_simplified = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_test)
+    task_a_optimality_simplified = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_test,
+                                                             prior_sigma=prior_sigma)
 
     aa = task_a_optimality_explicit(idx)
     bb = task_a_optimality_simplified(idx)
@@ -103,6 +105,16 @@ def detmax(fun, x0=None, n=100, k=30, excursion=10, method='add->remove', max_lo
         # x0 = greedy(n=n, k=k, verbose=0)
         x0 = random_subset(n=n, k=k, m=1, dtype=np.int16)[0]
 
+    def __add(x, nn):
+        x = idx_times_all(idx=x, n=nn)
+        oo = fun(x)
+        oo[x[0, :-1]] = np.inf
+        idx_min = np.argmin(oo)
+        # idx_min = np.random.choice(np.argsort(oo)[:nn//10])
+        oo = oo[idx_min]
+        x = x[idx_min]
+        return x, oo
+
     def remove(x, exc):
         oo = None
         for _ in range(1, exc+1):
@@ -121,26 +133,15 @@ def detmax(fun, x0=None, n=100, k=30, excursion=10, method='add->remove', max_lo
     def add(x, nn, exc):
         oo = None
         for _ in range(1, exc+1):
-            x = idx_times_all(idx=x, n=nn)
-
-            oo = fun(x)
-            oo[x[0, :-1]] = np.inf
-            idx_min = np.argmin(oo)
-            # idx_min = np.random.choice(np.argsort(oo)[:nn//10])
-            oo = oo[idx_min]
-            x = x[idx_min]
+            x, oo = __add(x=x, nn=nn)
 
         return np.sort(x), oo
 
     def addremove(x, nn, exc):
         x = np.repeat([x], repeats=len(x), axis=0)
         x = x[np.logical_not(np.eye(len(x), dtype=bool))].reshape(len(x), len(x) - 1)
-        x = idx_times_all(idx=x, n=nn)
-        oo = fun(x)
-        oo[x[0, :-1]] = np.inf
-        idx_min = np.argmin(oo)
-        oo = oo[idx_min]
-        x = x[idx_min]
+
+        x, oo = __add(x=x, nn=nn)
         return np.sort(x), oo
 
     o = np.inf
@@ -290,5 +291,3 @@ def ancestor_gif(ancestors, n):
         i %= n_gens-1
         ax.set_xlabel(f"Generation: {i}")
         plt.pause(0.1)
-
-
