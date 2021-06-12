@@ -1,7 +1,7 @@
 import numpy as np
 
 from wzk import new_fig, k_farthest_neighbors, tsp
-from Kinematic import forward, frame_difference, frames as fr, sample_q
+from Kinematic import forward, frame_difference, frames as cm, sample_q
 
 from Justin.Calibration import get_frame_arm_tcp_wrapper, get_corrected_q
 import Justin.Calibration.Measurements.GeneratePoses.combine_poses as combine

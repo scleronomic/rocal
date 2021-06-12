@@ -6,7 +6,7 @@ from wzk.mpl import new_fig, subplot_grid
 from wzk import tsp, get_timestamp, print_correlation, ray_sphere_intersection_2, print_progress
 
 import Optimizer.self_collision
-from Kinematic import forward, sample_configurations as sample, frames as fr
+from Kinematic import forward, sample_configurations as sample, frames as cm
 from Kinematic.Robots import Justin19, com
 import Justin.parameter_torso as jtp
 import Justin.primitives_torso as pp
@@ -193,7 +193,7 @@ def print_check_marker_occlusion_rlh(q):
 
 def filter_body_part(q,
                      torso=False, right=False, left=False, head=False,
-                     return_frames=False):
+                     return_cmames=False):
 
     assert torso + right + left + head == 1
 
@@ -215,7 +215,7 @@ def filter_body_part(q,
     else:
         raise ValueError
 
-    if return_frames:
+    if return_cmames:
         return q[feasible], frames[feasible]
     else:
         return q[feasible]
@@ -233,7 +233,7 @@ def plot_tcp_poss(frames, marker_frame_idx, q0, robot):
     limits = np.array([[-2, 2],
                        [-2, 2],
                        [0, 3]])
-    robot.f_world_robot = fr.trans_rot2frame(trans=[2, 2, 0.5], rot=None)
+    robot.f_world_robot = cm.trans_rot2frame(trans=[2, 2, 0.5], rot=None)
     frames = robot.f_world_robot @ frames
     tcp_pos = frames[:, marker_frame_idx, 0, :3, -1]
     x_spheres0 = forward.get_x_spheres(q=q0[np.newaxis, np.newaxis], robot=robot)
@@ -277,7 +277,7 @@ def main_torso_right(n_samples=100, verbose=1, safe=False):
     q0_left_down = pp.justin_primitives(justin='getready_left_side_down')
     q[:, :, ~variable_joints] = q0_left_down[:, :, ~variable_joints]
 
-    frames, x_spheres = forward.get_x_spheres(q=q, robot=par.robot, return_frames2=True)
+    frames, x_spheres = forward.get_x_spheres(q=q, robot=par.robot, return_cmames2=True)
 
     # Check the feasibility of the poses
     feasible_marker_rotation_right = check_marker_rotation_right(frames=frames)
@@ -312,7 +312,7 @@ def main_torso_right_left(n_samples=100, verbose=1, safe=False):
     # Create the samples
     q = sample.sample_q(robot=par.robot, n_samples=n_samples)
     q[:, :, ~variable_joints] = q_getready[:, :, ~variable_joints]
-    frames, x_spheres = forward.get_x_spheres(q=q, robot=par.robot, return_frames2=True)
+    frames, x_spheres = forward.get_x_spheres(q=q, robot=par.robot, return_cmames2=True)
 
     # Check the feasibility of the poses
     feasible_marker_rotation_right = check_marker_rotation_right(frames=frames)
@@ -354,7 +354,7 @@ def main_torso_right_left_filter(n_samples=1000, q=None, verbose=0):
 
     q = filter_body_part(q=q, torso=True)
     q = filter_body_part(q=q, right=True)
-    q, frames = filter_body_part(q=q, left=True, return_frames=True)
+    q, frames = filter_body_part(q=q, left=True, return_cmames=True)
     x_spheres = forward.frames2pos_spheres(f=frames, robot=par.robot)
 
     feasible_marker_occlusion_right = check_marker_occlusion_right(x_spheres=x_spheres)

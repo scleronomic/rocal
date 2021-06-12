@@ -131,17 +131,17 @@ class Justin19Cal(Justin19, RobotCal):
         self.dh_bool_c = np.vstack((dh_bool_torso, dh_bool_arm, dh_bool_arm, dh_bool_head))
 
         # CP
-        self.n_cp = len(self.dh)
-        self.cp = np.zeros((self.n_cp, 3))
+        self.n_el = len(self.dh)
+        self.el = np.zeros((self.n_el, 3))
         self.cp_bool_c = np.vstack((cp_bool_torso, cp_bool_arm, cp_bool_arm, cp_bool_head))
-
-        # FR
-        self.fr = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
-        self.idx_fr = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
-        self.fr_c = fr_bool_robot
-        self.n_fr = len(self.fr)
-
 
         # MA
         self.n_ma = len(self.masses)
         self.ma = np.hstack((jtp.MASS_POS[:, :3], jtp.MASSES[:, np.newaxis] / 100))
+
+        # FR
+        self.cm = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
+        self.idx_fr = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
+        self.fr_c = fr_bool_robot
+        self.n_cm = len(self.cm)
+

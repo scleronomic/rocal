@@ -8,7 +8,7 @@ from rocal.Measurements.io2 import get_q, get_parameter_identifier
 
 def iterative_mass_compliance():
 
-    cal_rob = Justin19Cal(dcmf='cc0c', use_imu=True, cp_loop=0)
+    cal_rob = Justin19Cal(dkmc='cc0c', use_imu=True, el_loop=0)
 
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=200, seed=75)
 
@@ -16,19 +16,19 @@ def iterative_mass_compliance():
     for i in range(20):
         print(i)
         if i % 3 == 0:
-            cal_rob = Justin19Cal(dcmf='cc0c', use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dkmc='cc0c', use_imu=True, el_loop=0)
 
         elif i % 3 == 1:
-            cal_rob = Justin19Cal(dcmf='00p0', use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dkmc='00p0', use_imu=True, el_loop=0)
 
         elif i % 3 == 2:
-            cal_rob = Justin19Cal(dcmf='00m0', use_imu=True, cp_loop=0)
+            cal_rob = Justin19Cal(dkmc='00m0', use_imu=True, el_loop=0)
 
         if i > 0:
             cal_rob.dh = x['dh']
-            cal_rob.cp = x['cp']
+            cal_rob.el = x['el']
             cal_rob.ma = x['ma']
-            cal_rob.fr = x['fr']
+            cal_rob.cm = x['cm']
         x, stats = calibrate(q_cal=q0_cal, t_cal=t_cal, q_test=q0_test, t_test=t_test, verbose=1,
                              cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
         x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)

@@ -13,7 +13,7 @@ from rocal.Robots.Justin19 import Justin19Cal
 def test_seed():
     ray.init(address='auto')
 
-    cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=False, cp_loop=0)
+    cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=False, el_loop=0)
 
     @ray.remote
     def calibrate_ray2(seed):

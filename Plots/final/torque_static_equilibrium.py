@@ -33,13 +33,13 @@ def plot():
     n_iter = 10
     n_iter_show = 5
 
-    cal_rob = Justin19Cal(dcmf='0c00', cp_loop=0, config_filter='ff', use_imu=False, fr0=False,
+    cal_rob = Justin19Cal(dkmc='0c00', el_loop=0, config_filter='ff', use_imu=False, fr0=False,
                           add_nominal_offsets=True)
     x_dict = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff.npy", allow_pickle=True)[0]
-    cp = x_dict['cp']
-    cp = cp[cp != 0]
+    el = x_dict['el']
+    el = el[el != 0]
 
-    cp_list = [cp*20, cp*5, cp, cp/5, cp/20]
+    cp_list = [el*20, el*5, el, el/5, el/20]
     color_list = ['0.5', '0.25', 'b', '0.25', '0.5']
     name_list = ['x20 softer', 'x5 softer', 'real robot', 'x5 stiffer', 'x20 stiffer']
     marker_list = ['^', '^', 'o', 'v', 'v']
@@ -49,18 +49,18 @@ def plot():
 
     np.random.seed(0)
     q = cal_rob.sample_q(n_samples)
-    x = np.zeros_like(cp)
+    x = np.zeros_like(el)
 
     t_list = []
     for i in cp_list:
         if isinstance(i, float):
-            x[:] = i * np.sign(cp)
+            x[:] = i * np.sign(el)
         else:
             x[:] = i
 
         tt = []
         for j in range(n_iter):
-            cal_rob.cp_loop = j
+            cal_rob.el_loop = j
             tt.append(kinematic(cal_rob=cal_rob, q=q, **unwrap_x(cal_rob=cal_rob, x=x)))
         t_list.append(tt)
 

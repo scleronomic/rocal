@@ -189,9 +189,9 @@ def get_parameter_identifier(cal_rob, with_robot=True):
     mafr0 = f"{int(cal_rob.ma0)}{int(cal_rob.fr0)}"
     imu = '_imu' if cal_rob.use_imu else ''
     if with_robot:
-        name = f"{cal_rob.id}_{cal_rob.dcmf}_{cal_rob.cp_loop}_{mafr0}_{cal_rob.config_filter}{imu}"
+        name = f"{cal_rob.id}_{cal_rob.dkmc}_{cal_rob.el_loop}_{mafr0}_{cal_rob.config_filter}{imu}"
     else:
-        name = f"{cal_rob.dcmf}_{cal_rob.cp_loop}_{mafr0}_{cal_rob.config_filter}{imu}"
+        name = f"{cal_rob.dkmc}_{cal_rob.el_loop}_{mafr0}_{cal_rob.config_filter}{imu}"
 
     return name
 
@@ -200,7 +200,7 @@ def __get_path_identifier(directory, cal_rob, name='', full=False):
     if full:
         file = f"{os.path.normpath(directory)}/" \
                f"{cal_rob.id}/" \
-               f"f{'_'.join([str(i) for i in cal_rob.idx_fr])}/" \
+               f"f{'_'.join([str(i) for i in cal_rob.cm_f_idx])}/" \
                f"{name}__{get_parameter_identifier(cal_rob=cal_rob, with_robot=False)}.npy"
         return file
 

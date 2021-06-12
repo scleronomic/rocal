@@ -22,9 +22,9 @@ def add_margin(ax, pad, **kwargs):
 
 
 # Nominal
-cal_rob0 = Justin19Cal(dcmf='000c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
-cal_rob1 = Justin19Cal(dcmf='f00c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
-cal_rob2 = Justin19Cal(dcmf='ff0c', ma0=True, fr0=True, use_imu=True, cp_loop=1, add_nominal_offsets=False)
+cal_rob0 = Justin19Cal(dkmc='000c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
+cal_rob1 = Justin19Cal(dkmc='f00c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
+cal_rob2 = Justin19Cal(dkmc='ff0c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
 
 (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob2, split=-1, seed=75)
 

@@ -8,14 +8,14 @@ from rocal.main import cal_par
 
 def leave_one_out_analysis_joints():
 
-    cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=True, cp_loop=1)
+    cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=True, el_loop=1)
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=200, seed=75)
 
     d = np.zeros(20, dtype=object)
     print(len(cal_rob.dh_bool_c))
     for i in range(20):
         print(i)
-        cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+        cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=True, el_loop=0)
         cal_rob.dh_bool_c[i, :] = False
         cal_rob.cp_bool_c[i, :] = False
 
@@ -109,14 +109,14 @@ def leave_one_out_analysis_joints():
 
 def leave_one_out_analysis():
     name_list = ['all', 'd', 'theta', 'a', 'alpha', 'cp_theta', 'cp_alpha']
-    cal_rob = Justin19Cal(dcmf='ff0c', ma0=True, fr0=True, use_imu=True, cp_loop=1)
+    cal_rob = Justin19Cal(dkmc='ff0c', ma0=True, fr0=True, use_imu=True, el_loop=1)
 
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=200, seed=75)
 
     d = {}
     for name in name_list:
         print(name)
-        _cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=True, cp_loop=0)
+        _cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=True, el_loop=0)
         if name == 'd':
             _cal_rob.dh_bool_c[:, 0] = False
         elif name == 'theta':

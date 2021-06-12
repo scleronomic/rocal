@@ -10,16 +10,16 @@ from wzk.mpl import new_fig, save_all, error_area, plot_projections_2d
 # Visualization
 def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
     """
-    Return an array (n_frames, 2, 5) where the stats (wzk.mathematics.get_stats())
+    Return an array (n_cmames, 2, 5) where the stats (wzk.mathematics.get_stats())
     for translational and rotational differences are combined
     """
-    n_samples, n_frames, _, _ = f0.shape
+    n_samples, n_cmames, _, _ = f0.shape
     if frame_names is None:
-        frame_names = str0_to_n(s='Frame_', n=n_frames)
+        frame_names = str0_to_n(s='Frame_', n=n_cmames)
     else:
-        assert n_frames == len(frame_names)
+        assert n_cmames == len(frame_names)
 
-    stats = np.empty((n_frames, 2, 5))
+    stats = np.empty((n_cmames, 2, 5))
     for i, fname in enumerate(frame_names):
         d_trans, d_rot = frame_difference(f0[:, i, :, :], f1[:, i, :, :])
         stats[i, 0, :] = get_stats(x=d_trans, return_array=True)

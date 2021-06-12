@@ -7,7 +7,7 @@ from wzk import numeric_derivative
 from rocal.calibration import create_wrapper_kinematic, unwrap_x
 from rocal.Robots.Justin19 import Justin19Cal
 
-cal_rob = Justin19Cal(dcmf='0f00')
+cal_rob = Justin19Cal(dkmc='0f00')
 
 q = cal_rob.sample_q(100)
 

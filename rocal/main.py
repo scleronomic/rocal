@@ -13,15 +13,6 @@ from wzk.spatial import trans_rotvec2frame
 # FINDING 10000 test configurations is easily enough to have a small variance
 
 
-class CalibrationParameter:
-    def __init__(self):
-        self.sigma_trans, self.sigma_rot = 1000, 0  # was 100
-        self.x_weighting = 0.01  # was  0.01 for dummy
-        self.f_weighting = [1, 1]
-        self.method = 'PyOpt - SLSQP'  # way faster
-        self.options = {'maxiter': 200,
-                        'disp': True,
-                        'ftol': 1e-7}
 
 
 cal_par = CalibrationParameter()
@@ -50,7 +41,7 @@ if __name__ == '__main__':
     # leave_one_out_analysis_joints()
     # test_static_equilibrium_truncation()
 
-    cal_rob = Justin19Cal(dcmf='000c', ma0=True, fr0=True, use_imu=False, cp_loop=1)
+    cal_rob = Justin19Cal(dkmc='000c', ma0=True, fr0=True, use_imu=False, el_loop=1)
 
     directory = ICHR20_CALIBRATION + '/Measurements/600'
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
@@ -71,9 +62,9 @@ if __name__ == '__main__':
     # f0 = kinematic(cal_rob=cal_rob, q=q0, **xn)
 
     #
-    # dcmf = 'cc0c'
-    # cal_rob0 = Justin19Calib(dcmf=dcmf, ma0=True, fr0=True, use_imu=False, cp_loop=0)
-    # cal_rob3 = Justin19Calib(dcmf=dcmf, ma0=True, fr0=True, use_imu=False, cp_loop=3)
+    # dkmc = 'cc0c'
+    # cal_rob0 = Justin19Calib(dkmc=dkmc, ma0=True, fr0=True, use_imu=False, el_loop=0)
+    # cal_rob3 = Justin19Calib(dkmc=dkmc, ma0=True, fr0=True, use_imu=False, el_loop=3)
     #
     # directory = DLR_USERSTORE_PAPER_2020_CALIB  # + '/Justin19'
     # q = load_q(directory=directory, cal_rob=cal_rob0)

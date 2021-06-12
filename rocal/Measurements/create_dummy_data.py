@@ -13,20 +13,20 @@ def get_dummy_parameters(cal_rob,
                          dh_scale=0.01, cp_scale=0.01, ma_scale=1., fr_scale=1.,
                          noise_mode='plusminus'):
 
-    dh_bool, cp_bool, ma_bool, fr_bool = get_active_parameters(cal_rob=cal_rob)
+    dh_bool, el_bool, ma_bool, cm_bool = get_active_parameters(cal_rob=cal_rob)
     dh = np.zeros_like(dh_bool, dtype=float)
-    cp = np.zeros_like(cp_bool, dtype=float)
+    el = np.zeros_like(el_bool, dtype=float)
     ma = np.zeros_like(ma_bool, dtype=float)
-    fr = np.zeros_like(fr_bool, dtype=float)
+    cm = np.zeros_like(cm_bool, dtype=float)
 
     dh[dh_bool] = noise(scale=dh_scale, shape=int(dh_bool.sum()), mode=noise_mode)
-    cp[cp_bool] = noise(scale=cp_scale, shape=int(cp_bool.sum()), mode=noise_mode)
+    el[el_bool] = noise(scale=cp_scale, shape=int(el_bool.sum()), mode=noise_mode)
     ma[ma_bool] = noise(scale=ma_scale, shape=int(ma_bool.sum()), mode=noise_mode)
-    fr[fr_bool] = noise(scale=fr_scale, shape=int(fr_bool.sum()), mode=noise_mode)
+    cm[cm_bool] = noise(scale=fr_scale, shape=int(cm_bool.sum()), mode=noise_mode)
 
-    fr = trans_rotvec2frame(trans=fr[:, :3], rotvec=fr[:, 3:])
+    cm = trans_rotvec2frame(trans=cm[:, :3], rotvec=cm[:, 3:])
 
-    return dict(dh=dh, cp=cp, ma=ma, fr=fr)
+    return dict(dh=dh, el=el, ma=ma, cm=cm)
 
 
 def create_dummy_measurements(*, cal_rob, x_dict, q,
@@ -37,7 +37,7 @@ def create_dummy_measurements(*, cal_rob, x_dict, q,
 
     if verbose > 0:
         x_dict0 = set_bool_dict_false(x_dict=x_dict)
-        x_dict0['fr'] = x_dict['fr']  # or np.eye
+        x_dict0['cm'] = x_dict['cm']  # or np.eye
         t0 = kinematic(cal_rob=cal_rob, q=q, **x_dict0)
         trans_diff0, rot_diff0 = frame_difference(t0, t)
 
@@ -63,8 +63,8 @@ def value_analysis_cp():
     # x_dict3 = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_3_11_ff.npy", allow_pickle=True)[0]
     x_dict0_imu = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff_imu.npy", allow_pickle=True)[0]
     x_dict3_imu = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_3_11_ff_imu.npy", allow_pickle=True)[0]
-    # cp0, cp3 = x_dict0['cp'], x_dict3['cp']
-    cp0_imu, cp3_imu = x_dict0_imu['cp'], x_dict3_imu['cp']
+    # cp0, cp3 = x_dict0['el'], x_dict3['el']
+    cp0_imu, cp3_imu = x_dict0_imu['el'], x_dict3_imu['el']
 
     # print(np.round(cp0 / 100 * 1000, 3))
     # print(np.round(cp0_imu / 100 * 1000, 3))
@@ -80,17 +80,17 @@ def main_create_dummy_measurements():
     from rocal.Robots.Justin19 import Justin19Cal
     directory = ICHR20_CALIBRATION
 
-    dcmf = 'cc0c'
-    cal_rob_ff = Justin19Cal(dcmf=dcmf, cp_loop=30, config_filter='ff', use_imu=False, add_nominal_offsets=True,
+    dkmc = 'cc0c'
+    cal_rob_ff = Justin19Cal(dkmc=dkmc, el_loop=30, config_filter='ff', use_imu=False, add_nominal_offsets=True,
                              fr0=False)
-    # cal_rob_nf = Justin19Calib(dcmf=dcmf, cp_loop=30, config_filter='nf', use_imu=False, add_nominal_offsets=True,
+    # cal_rob_nf = Justin19Calib(dkmc=dkmc, el_loop=30, config_filter='nf', use_imu=False, add_nominal_offsets=True,
     #                            fr0=False)
     x_dict = np.load(f"{directory}/Measurements/600/results/Justin19_cc0c_0_11_ff.npy", allow_pickle=True)[0]
     x_dict['dh'][:] = 0
     x_dict['ma'][:] = 0
-    x_dict['fr'][:] = np.eye(4)
-    print(x_dict['cp'])
-    x_dict['cp'] *= 20
+    x_dict['cm'][:] = np.eye(4)
+    print(x_dict['el'])
+    x_dict['el'] *= 20
     # q_ff = load_q(directory=directory, cal_rob=cal_rob_ff)
     # q_nf = load_q(directory=directory, cal_rob=cal_rob_nf)
     # q_nf, q_ff

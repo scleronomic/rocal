@@ -14,7 +14,7 @@ from rocal.definitions import ICHR20_CALIBRATION
 def test_n_influence(seed=75):
     ray.init(address='auto')
 
-    cal_rob = Justin19Cal(dcmf='cc0c', ma0=True, fr0=True, use_imu=False, cp_loop=0)
+    cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=False, el_loop=0)
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=200, seed=seed)
 
     n_list = np.hstack([np.arange(1, 21, 1),
