@@ -8,7 +8,7 @@ class Parameter:
         self.lambda_trans, self.lambda_rot = 1000, 0  # was 100
         self.f_weighting = [1, 1]
         
-        self.prior_sigma = 0.01  # 0.01  # was  0.01 for dummy
+        self.prior_sigma = 0.02  # 0.01  # was  0.01 for dummy
         self.mu_sigma = 0  #
         
         self.method = 'PyOpt - SLSQP'  # way faster

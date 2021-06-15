@@ -82,9 +82,9 @@ cp_bool_head = np.array([[1, 0, 1],
 # cp_bool_head = np.array([[1, 1, 1],
 #                          [1, 1, 1]], dtype=bool)
 
-fr_bool_robot = np.array([[1, 1, 1, 1, 1, 1],
-                          [1, 1, 1, 0, 0, 0],
-                          [1, 1, 1, 0, 0, 0]], dtype=bool)
+cm_bool = np.array([[1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 0, 0, 0],
+                    [1, 1, 1, 0, 0, 0]], dtype=bool)
 
 # Target Frames
 # f_world_base0 = np.array([[1, 0, 0, 1.4],  # Meas 1, only right, dummy
@@ -141,7 +141,7 @@ class Justin19Cal(Justin19, RobotCal):
 
         # FR
         self.cm = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
-        self.idx_fr = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
-        self.fr_c = fr_bool_robot
+        self.cm_f_idx = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
+        self.cm_bool_c = cm_bool
         self.n_cm = len(self.cm)
 

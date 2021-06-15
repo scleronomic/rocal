@@ -4,6 +4,7 @@ from wzk.spatial import trans_rotvec2frame, frame_difference_cost
 from wzk.geometry import capsule_capsule
 from wzk import get_stats
 
+from mopla.Optimizer.util import true_basin_cost
 from rocal.Plots.plotting import plot_frame_difference
 
 
@@ -25,7 +26,7 @@ def measure_frame_difference(frame_a, frame_b, weighting=None,
 
 
 def __prior_objective(x, prior_mu, prior_sigma):
-    return 1/prior_sigma**2 * (x - prior_mu) ** 2
+    return (1/prior_sigma**2 * (x - prior_mu) ** 2).sum()
 
 
 def build_objective_cal_marker(q, t,
@@ -102,10 +103,9 @@ def _cal_touch(f, cm, pairs, cal_rob):
     x_i = (f_i[..., np.newaxis, :, :] * cal_rob.capsules_pos[capsule_i][:, :, np.newaxis, :]).sum(axis=-1)[..., :-1]
     x_j = (f_j[..., np.newaxis, :, :] * cal_rob.capsules_pos[capsule_j][:, :, np.newaxis, :]).sum(axis=-1)[..., :-1]
 
-    xa, xb = capsule_capsule(line_a=x_i.transpose(1, 0, 2), line_b=x_j.transpose(1, 0, 2),
-                             radius_a=cal_rob.capsules_rad[capsule_i], radius_b=cal_rob.capsules_rad[capsule_j])
-    d = np.linalg.norm(xa - xb, axis=-1)
-    return d
+    xa, xb, n = capsule_capsule(line_a=x_i.transpose(1, 0, 2), line_b=x_j.transpose(1, 0, 2),
+                                radius_a=cal_rob.capsules_rad[capsule_i], radius_b=cal_rob.capsules_rad[capsule_j])
+    return n
 
 
 def build_objective_cal_touch(q, t,
@@ -121,13 +121,21 @@ def build_objective_cal_touch(q, t,
 
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 
-        obj = ((d - t)**2).sum()
+        obj = true_basin_cost(x=d*1000, a=-2.5, b=-0.5, eps=0.5)  # [mm]
+        # obj = 100*(d - t)**2
 
+        obj = obj.sum()
+
+        obj_prior = __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)
+        print(obj, obj_prior)
+
+        obj += obj_prior
         if verbose > 0:
-            stats = get_stats(np.abs(d-t))
-            return stats, obj
+            # dd = np.abs(d-t)
+            return d, obj
+            # stats = get_stats(np.abs(d-t))
+            # return stats, obj
 
-        obj += __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)
         return obj
 
     return objective

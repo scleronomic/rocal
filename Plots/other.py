@@ -159,7 +159,7 @@ def plot_correlation():
     # a = 1
     # fig, ax = new_fig()
     # ax.imshow(mat.T, cmap='gray_r')
-    # ol_all = get_element_overlap(arr1=idx_r[:100], arr2=idx_r[-100:])
+    # ol_all = get_element_overlap(arr1=idx_r[:100], arr2=idx_r[-100:])ÓÓÓ
     # ol.mean()
     # ol_all.mean()
     # a = 1

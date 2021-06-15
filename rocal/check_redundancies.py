@@ -5,27 +5,33 @@ from wzk.mpl import new_fig
 from wzk import numeric_derivative
 
 from rocal.calibration import create_wrapper_kinematic
-from rocal.Robots.Justin19 import Justin19Cal
+from rocal.Robots import Justin19Cal, JustinHand12Cal, JustinFinger03Cal
 # from rocal.parameter import unwrap_x
 
-cal_rob = Justin19Cal(dkmc='0f00')
+# cal_rob = Justin19Cal(dkmc='f000')
+cal_rob = JustinFinger03Cal(dkmc='f000')
 
 q = cal_rob.sample_q(100)
 
 
 kin_fun = create_wrapper_kinematic(cal_rob=cal_rob, q=q)
-x = np.random.random(18*3)
+x = np.random.uniform(size=4*4)
+# x = np.random.uniform(size=cal_rob.n_dof*4)
+
+idx_f = [-1]
 
 
 def fun_x(_x):
-    return kin_fun(_x)[..., :3, -1].ravel()
+    f, cm = kin_fun(_x)
+    return f[:, idx_f, :3, -1].ravel()
 
 
 def fun_dh(dh):
     f = cal_rob.get_frames_dh(q=q, dh=dh.reshape(-1, 4))
-    return f[..., [13, 22], :3, -1].ravel()
+    return f[:, idx_f, :3, -1].ravel()
 
 
+fun = fun_x(x)
 jac = numeric_derivative(fun=fun_x, x=x)
 jac = np.round(jac, 3)
 
