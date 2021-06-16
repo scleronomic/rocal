@@ -51,7 +51,7 @@ def get_active_parameters(cal_rob):
     m_dh = 4
     m_cp = 3
     m_ma = 4
-    m_fr = 6
+    m_cm = 6
 
     __error_string = ("Unknown {}-mode '{}'. Use one of the following: "
                       " ['j' (joint offsets), 'f' (full), 'c' (custom)]")
@@ -105,18 +105,18 @@ def get_active_parameters(cal_rob):
 
     # Close measurement
     if cm == '0':
-        cm_bool = np.zeros((n_cm, m_fr), dtype=bool)
+        cm_bool = np.zeros((n_cm, m_cm), dtype=bool)
     elif cm == 'p':
-        cm_bool = np.zeros((n_cm, m_fr), dtype=bool)
+        cm_bool = np.zeros((n_cm, m_cm), dtype=bool)
         cm_bool[:, :3] = True
     elif cm == 'o':
-        cm_bool = np.zeros((n_cm, m_fr), dtype=bool)
+        cm_bool = np.zeros((n_cm, m_cm), dtype=bool)
         cm_bool[:, 3:] = True
     elif cm == 'f':
-        cm_bool = np.ones((n_cm, m_fr), dtype=bool)
+        cm_bool = np.ones((n_cm, m_cm), dtype=bool)
     elif cm == 'c':
-        cm_bool = cal_rob.fr_c
-        assert cm_bool.shape == (n_cm, m_fr)
+        cm_bool = cal_rob.cm_c
+        assert cm_bool.shape == (n_cm, m_cm)
     else:
         raise ValueError(__error_string.format('ma', ma))
 

@@ -15,4 +15,9 @@ class JustinHand12Cal(JustinHand12, RobotCal):
 
         self.cm_f_idx = np.array([5, 11, 17, 23])
         self.cm = np.eye(4)[np.newaxis, :, :].repeat(4, axis=0)
+        self.cm_c = np.array([[1, 1, 1, 1, 1, 1],
+                              [1, 1, 1, 1, 1, 1],
+                              [0, 0, 0, 0, 0, 0],
+                              [1, 1, 1, 1, 1, 1]], dtype=bool)
+
         self.n_cm = 4

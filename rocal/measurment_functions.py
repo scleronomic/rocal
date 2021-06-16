@@ -4,7 +4,7 @@ from wzk.spatial import trans_rotvec2frame, frame_difference_cost
 from wzk.geometry import capsule_capsule
 from wzk import get_stats
 
-from mopla.Optimizer.util import true_basin_cost
+from mopla.Optimizer.cost_functions import lqql_basin
 from rocal.Plots.plotting import plot_frame_difference
 
 
@@ -90,7 +90,7 @@ def _cal_touch(f, cm, pairs, cal_rob):
 
     """
     n = len(f)
-    i, j = pairs.T
+    i, j = cal_rob.cm_f_idx[pairs.T]
     capsule_i = np.array([np.nonzero(cal_rob.capsules_f_idx == ii)[0].item() for ii in i])
     capsule_j = np.array([np.nonzero(cal_rob.capsules_f_idx == jj)[0].item() for jj in j])
     t_dict = {p: i for i, p in enumerate(cal_rob.cm_f_idx)}
@@ -121,7 +121,7 @@ def build_objective_cal_touch(q, t,
 
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 
-        obj = true_basin_cost(x=d*1000, a=-2.5, b=-0.5, eps=0.5)  # [mm]
+        obj = lqql_basin(x=d * 1000, a=-2.5, b=-0.5, eps=0.5)  # [mm]
         # obj = 100*(d - t)**2
 
         obj = obj.sum()

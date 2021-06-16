@@ -121,40 +121,50 @@ def calibrate_wrapper(cal_rob, cal_par, x0_noise):
     return calibrate2
 
 
-def calibrate(cal_rob, cal_par, x0_noise,
-              q_cal, t_cal, q_test, t_test,
-              obj_fun=build_objective_cal_marker,
-              verbose=1):
+def obj_wrapper(cal_rob, cal_par, obj_fun):
 
     if isinstance(obj_fun, str):
         obj_fun = meas_fun_dict[obj_fun]
 
     n, x_bool_dict = get_x_bool_dict(cal_rob=cal_rob)
+    x_wrapper = create_x_unwrapper(**x_bool_dict)
+
+    kinematic2 = create_wrapper_kinematic(x_wrapper=x_wrapper, cal_rob=cal_rob)
+
+    def obj_fun2(q, t):
+        return obj_fun(q=q, t=t, kin_fun=kinematic2, cal_rob=cal_rob, cal_par=cal_par)
+
+    return obj_fun2
+
+
+def calibrate(cal_rob, cal_par, x0_noise,
+              q_cal, t_cal, q_test, t_test,
+              obj_fun=build_objective_cal_marker,
+              verbose=1):
+
+    n, x_bool_dict = get_x_bool_dict(cal_rob=cal_rob)
+
     if x0_noise is None or x0_noise == 0:
         x0 = np.zeros(n)
     else:
         x0 = np.random.normal(0, scale=x0_noise, size=n)
-    x_wrapper = create_x_unwrapper(**x_bool_dict)
 
     # Pre
-    kinematic2 = create_wrapper_kinematic(x_wrapper=x_wrapper, cal_rob=cal_rob)
-    obj = obj_fun(q=q_cal, t=t_cal, kin_fun=kinematic2, cal_rob=cal_rob, cal_par=cal_par)
+    obj_fun = obj_wrapper(cal_rob=cal_rob, cal_par=cal_par, obj_fun=obj_fun)
+    obj_fun_test = obj_fun(q=q_cal, t=t_cal)
 
     # Main
     cal_par.options['disp'] = verbose > 2
-    x = minimize_slsqp(fun=obj, x0=x0, options=cal_par.options, verbose=verbose-1)
+    x = minimize_slsqp(fun=obj_fun_test, x0=x0, options=cal_par.options, verbose=verbose-1)
 
     # Post
-    if verbose > 1:
-        print_dict(x_wrapper(x))
-
     if q_test is None or t_test is None:
         print('Attention! No test set given -> Show trainings error')
         q_test = q_cal
         t_test = t_cal
 
-    obj = obj_fun(q=q_test, t=t_test, kin_fun=kinematic2, cal_rob=cal_rob, cal_par=cal_par)
-    stats, _ = obj(x, verbose=min(1, verbose))
+    obj_fun_test = obj_fun(q=q_test, t=t_test)
+    stats, _ = obj_fun_test(x, verbose=min(1, verbose))
 
     return x, stats
 
