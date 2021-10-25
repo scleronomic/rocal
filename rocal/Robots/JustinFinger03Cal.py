@@ -1,5 +1,7 @@
 import numpy as np
-from mopla.Kinematic.Robots import JustinFinger03
+
+from rokin.Robots import JustinFinger03
+
 from rocal.Robots import RobotCal
 
 

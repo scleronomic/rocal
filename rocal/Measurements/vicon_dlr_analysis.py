@@ -3,18 +3,18 @@ from itertools import combinations
 
 from wzk.mpl import new_fig, save_fig, remove_duplicate_labels
 from wzk.spatial import invert, Rotation
+
+from rokin.forward import get_frames_x
+from rokin.Robots import Justin19
+
 from rocal.Measurements import io2
 from rocal.Plots.plotting import scatter_measurements_3d, plot_projections_2d
-
-from Calibration.use import load_calibrated_kinematic
-
-from mopla.Kinematic.forward import get_frames_x
-from mopla.Kinematic.Robots.Justin19 import Justin19
-
 from rocal.definitions import ICHR20_CALIBRATION
 
-robot = Justin19()
+from rocal.use import load_calibrated_kinematic
 
+
+robot = Justin19()
 kinematic2 = load_calibrated_kinematic()
 
 # f_base_imu = np.array([[0, 0, -1, -0.25],
@@ -47,7 +47,7 @@ def get_date_img(date_list):
 
 def poses20_over_time():
     from matplotlib.ticker import MultipleLocator, MaxNLocator
-    directory = ICHR20_CALIBRATION + '/TorsoRightLeft/0/m20/'
+    # directory = ICHR20_CALIBRATION + '/TorsoRightLeft/0/m20/'
 
     n = 20
 
@@ -143,9 +143,9 @@ def plot_measurements():
         print(mat, 'mm')
 
     def plot_diff_from_mean(_t, title=""):
-        fig, ax = new_fig(title=title)
+        _, _ax = new_fig(title=title)
         for i in range(_t.shape[1]):
-            ax.plot(1000 * (_t.mean(axis=0)[i] - _t[:, i]), np.zeros_like(norm_lr[:, 0]) + i*1, marker='o', alpha=0.7)
+            _ax.plot(1000 * (_t.mean(axis=0)[i] - _t[:, i]), np.zeros_like(norm_lr[:, 0]) + i*1, marker='o', alpha=0.7)
 
     norm_lr = np.linalg.norm(tx[:, :, 1] - tx[:, :, 0], axis=-1)
     norm0_lr = np.linalg.norm(t0x[:, :, 1] - t0x[:, :, 0], axis=-1)

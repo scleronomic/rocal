@@ -1,4 +1,4 @@
-from mopla.Kinematic.Robots import Robot
+from rokin.Robots import Robot
 
 
 class RobotCal(Robot):

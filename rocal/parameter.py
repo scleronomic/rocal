@@ -121,7 +121,7 @@ def get_active_parameters(cal_rob):
         raise ValueError(__error_string.format('ma', ma))
 
     excluded_joints = cal_rob.frame_frame_influence[:, cal_rob.cm_f_idx].sum(axis=-1) == 0
-    excluded_joints = excluded_joints[cal_rob.joint_frame_idx_dh]
+    excluded_joints = excluded_joints[cal_rob.joint_f_idx_dh]
     dh_bool[excluded_joints] = False
     el_bool[excluded_joints] = False
     return dh_bool, el_bool, ma_bool, cm_bool

@@ -1,5 +1,5 @@
-from wzk import new_fig, save_fig
 import numpy as np
+from wzk import new_fig, save_fig
 
 
 def true_best_with_noises(err_r, err_b, obj_r, obj_b,

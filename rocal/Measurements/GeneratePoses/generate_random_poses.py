@@ -45,8 +45,6 @@ marker_rotation_threshold = np.deg2rad(20)
 #  - Marker occlusion
 
 
-
-
 def show_justin_spheres(r):
     par.robot.spheres_rad = r
     par.robot.spheres_rad[r == -1] = 0.01
@@ -221,7 +219,6 @@ def filter_body_part(q,
         return q[feasible]
 
 
-
 def show_joint_value_distribution(q, variable_joints):
     n = int(variable_joints.sum())
     ax = subplot_grid(n=n)
@@ -334,7 +331,7 @@ def main_torso_right_left(n_samples=100, verbose=1, safe=False):
                                              feasible_self_collision,
                                              feasible_center_of_mass],
                                  names=['Rot Right', 'Rot Left',
-                                        'Occ Right', 'Occ Left', # 'Occ Head',
+                                        'Occ Right', 'Occ Left',  # 'Occ Head',
                                         'Collision', 'COM'])
     # -> Total: 23/100000 feasible
 
@@ -373,12 +370,11 @@ def main_torso_right_left_filter(n_samples=1000, q=None, verbose=0):
 
     q = q[feasible]
 
-
     # show_joint_value_distribution(q=q, variable_joints=variable_joints)
     return q
 
 
-# TODO compare current pose of justin with the tracking system base and adapt the positions  accoringly
+# TODO compare current pose of justin with the tracking system base and adapt the positions accordingly
 #   keep or redo?
 def save_loop(n):
     q = np.zeros((0, 1, 19))
@@ -439,7 +435,7 @@ def order(q, q2):
 #
 
 # q, qb = np.load('front_tcp_calibration.npy')
-from Justin.Calibration.use import load_get_corrected_q_lin
+# from Justin.Calibration.use import load_get_corrected_q_lin
 
 
 # qb = get_corrected_q2(q=q[:, 0])[:, np.newaxis]
@@ -459,7 +455,7 @@ from Justin.Calibration.use import load_get_corrected_q_lin
 # TODO idea learn this part supervised, do make it quicker
 #   could be molded to optimized c++ code and could allow good parallelization,
 #   this would a simple forward function, their exists a derivative, otherwise it is an iterative root search
-#   Kann man das als linearisiertes GLS hinschreiben und als  q_corrected = 19x19 * q_commanded aufloesen
+#   Possible to formulate as linearized GLS solve  q_corrected = 19x19 * q_commanded
 
 # q2 = np.load('/volume/USERSTORE/tenh_jo/0_Data/Calibration/Results/Paper/Measurements/front_tcp_calibration_fine_1740_cal.npy')
 # np.save('/volume/USERSTORE/tenh_jo/0_Data/Calibration/Results/Paper/Measurements/front_tcp_calibration_fine_1236_cal_filtered.npy', q2)
@@ -535,7 +531,7 @@ m = 30
 q_m = q[np.random.choice(np.arange(len(q)), m, replace=False)]
 
 q2 = np.array([corrected_q(qq, verbose=1) for qq in q_m[:, 0]])
-feasible = fc.feasibility_check(q=q2.reshape(-1, 1, 19), par=par)
+feasible = fc.feasibility_check(q=q2.reshape((-1, 1, 19)), par=par)
 
 q_m = q_m[feasible == 1][:20]
 q2 = q2[feasible == 1][:20]

@@ -2,7 +2,7 @@ import numpy as np
 
 from mopla.Kinematic.Robots import Justin19
 from mopla.Kinematic.forward import get_x_spheres
-from mopla.Justin.parameter_torso import joint_frame_idx_dh
+from mopla.Justin.parameter_torso import joint_f_idx_dh
 from mopla.Justin.masses import MASSES, MASS_POS, MASS_F_IDX
 
 from wzk.mpl import new_fig, save_fig, plt
@@ -34,7 +34,7 @@ def mass_model():
 
     count = 0
     for i, (fxx, ff) in enumerate(zip(fx, f)):
-        if i not in joint_frame_idx_dh:
+        if i not in joint_f_idx_dh:
             continue
         a = 0.05
         xxx = np.vstack([fxx-ff[:3, 2]*a, fxx--ff[:3, 2]*a])

@@ -4,8 +4,8 @@ alpha = 0.1
 x0 = 1
 
 
-def h(x):
-    return x0 + alpha*x
+def h(_x):
+    return x0 + alpha*_x
 
 
 x = np.random.normal()

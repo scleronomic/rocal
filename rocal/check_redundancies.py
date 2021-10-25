@@ -5,7 +5,7 @@ from wzk.mpl import new_fig
 from wzk import numeric_derivative
 
 from rocal.calibration import create_wrapper_kinematic
-from rocal.Robots import Justin19Cal, JustinHand12Cal, JustinFinger03Cal
+from rocal.Robots import JustinFinger03Cal
 # from rocal.parameter import unwrap_x
 
 # cal_rob = Justin19Cal(dkmc='f000')

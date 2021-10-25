@@ -5,11 +5,11 @@ from wzk.spatial import frame_difference
 from wzk.files import safe_create_dir
 from wzk.math2 import random_subset, numeric_derivative
 from wzk.multiprocessing2 import mp_wrapper
-from wzk.printing import print_dict, print_progress
+from wzk.printing import print_progress
 from wzk.strings import uuid4
 from wzk.pyOpt2 import minimize_slsqp
 
-from mopla.Kinematic import forward
+from rokin import forward
 
 from rocal.measurment_functions import meas_fun_dict, build_objective_cal_marker
 from rocal.parameter import offset_nominal_parameters, create_x_unwrapper, get_x_bool_dict
@@ -30,8 +30,8 @@ def get_torque_dh(f, cal_rob,
 
     mass, mass_pos = ma[:, -1], ma.copy()
     mass_pos[:, -1] = 1
-    torque = forward.get_torques(f=f, mass=mass, mass_pos=mass_pos, mass_frame_idx=cal_rob.masses_frame_idx,
-                                 torque_frame_idx=cal_rob.joint_frame_idx_dh,
+    torque = forward.get_torques(f=f, mass=mass, mass_pos=mass_pos, mass_f_idx=cal_rob.masses_f_idx,
+                                 torque_f_idx=cal_rob.joint_f_idx_dh,
                                  frame_frame_influence=cal_rob.frame_frame_influence,
                                  mode='dh')[1]
 
@@ -63,7 +63,7 @@ def kinematic(cal_rob,
     if cal_rob.use_imu:
         imu, q = np.split(q, [3], axis=-1)
     else:
-        imu = None
+        imu = None  # noqa TODO NotImplemented
 
     # Forward Kinematic with compliance in the joints
     f = cal_rob.get_frames_dh(q=q, dh=dh)

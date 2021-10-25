@@ -44,7 +44,7 @@ def plot():
     name_list = ['x20 softer', 'x5 softer', 'real robot', 'x5 stiffer', 'x20 stiffer']
     marker_list = ['^', '^', 'o', 'v', 'v']
 
-    n_tests = len(cp_list)
+    # n_tests = len(cp_list)
     y_lim = (1e-4, 1e3)
 
     np.random.seed(0)

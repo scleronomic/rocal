@@ -4,8 +4,9 @@ from wzk import new_fig, k_farthest_neighbors, tsp
 from wzk.spatial import frame_difference, invert
 
 
-import mopla.Justin.primitives_torso as pp
-from mopla.Visualization.pyvista2.pyvista2 import sphere_path_animation
+from rokin.Robots.Justin19 import primitives_torso as pp
+from rokin.plots.pyvista2.pyvista2 import sphere_path_animation
+
 from rocal.Robots import Justin19Cal
 
 robot = Justin19Cal()
@@ -28,7 +29,7 @@ def get_q_calibration():
                                     a + '/random_poses_1000.npy')[:, np.newaxis, :]), axis=0)
 
     # Finding: The worst cases are pretty similar for the different calibration models -> good
-    idx_var0 = np.array([1085, 3394, 4217, 3158, 1083])
+    # idx_var0 = np.array([1085, 3394, 4217, 3158, 1083])
     idx_fixed0 = np.array([2023, 3348,  873, 3394,   67, 1085, 4654, 1083, 3244])
     q_list = q[idx_fixed0]
     q_list[..., 0] = 0
@@ -182,7 +183,7 @@ def visualize_relative_error():
     # (q_meas, target_meas) = load_measurements_right_head(file=file_data)
     x, x_dict = load_results(file=file_res)
 
-    f_world_targetArm, f_world_targetHead = np.split(target_meas, 2, axis=1)
+    f_world_target_arm, f_world_target_head = np.split(target_meas, 2, axis=1)
     x_wrapper = create_x_wrapper(**x_dict)
     get_target = create_wrapper_kinematic(x_wrapper=x_wrapper, robot=robot)
     f_head, f_right = np.split(get_target(q=q_meas, x=x), 2, axis=1)
@@ -197,7 +198,7 @@ def visualize_relative_error():
     # d_norm = np.linalg.norm(d[0], axis=-1)
     # print(min(d_norm))
 
-    f_relative_meas = (invert(f_world_targetHead[-1]) @ f_world_targetArm[:-1])[:, np.newaxis]
+    f_relative_meas = (invert(f_world_target_head[-1]) @ f_world_target_arm[:-1])[:, np.newaxis]
     f_relative_cal = invert(f_head[-1]) @ f_right[:-1]
     f_relative_cal0 = invert(f_head0[-1]) @ f_right0[:-1]
 
@@ -207,4 +208,3 @@ def visualize_relative_error():
                           frame_names=('Calibration', 'No Calibration'), verbose=2)
 
     save_plots(file_res+'relative')
-

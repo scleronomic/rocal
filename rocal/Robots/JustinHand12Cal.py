@@ -1,5 +1,6 @@
 import numpy as np
-from mopla.Kinematic.Robots import JustinHand12
+
+from rokin.Robots import JustinHand12
 from rocal.Robots import RobotCal
 
 # t0 = trans_rotvec2frame(trans=np.array([0.01, 0, 0.05]), rotvec=np.zeros(3))

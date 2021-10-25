@@ -235,7 +235,8 @@ def main():
     for f in ['TEST']:
         for n in [1]:
             calculate_path(directory=f"TorsoRightLeft/{f}/", mode='ordered', n_samples=n)
-            no_unnecessary_motion(directory=f"TorsoRightLeft/{f}", mode='ordered', n_samples=n, variable_joints=variable_joints, q0=q0)
+            no_unnecessary_motion(directory=f"TorsoRightLeft/{f}", mode='ordered', n_samples=n,
+                                  variable_joints=variable_joints, q0=q0)
 
 
 # test_read()
@@ -257,7 +258,7 @@ def main():
 
 # q_path_list = np.load('/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightArm/C/random_poses_path_50.npy')
 # q_path_list = smooth_paths(q_path_list)
-# write_msgpack(file='/volume/USERSTORE/tenh_jo/0_Data/Calibration/random_poses_smooth50_C.bin', nested_list=q_path_list)
+# write_msgpack(file='/volume/USERSTORE/tenh_jo/0_Data/Calibration/random_poses_smooth50_C.bin',nested_list=q_path_list)
 
 # q_list = np.load('front_tcp_calibration2.npy')
 # q_list = np.load(ICHR20_CALIBRATION_DATA + 'Measurements/front_tcp_calibration_50_fine_ordered_subset.npy')

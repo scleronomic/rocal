@@ -2,7 +2,7 @@ import numpy as np
 
 from wzk.spatial import trans_rotvec2frame, frame_difference_cost
 from wzk.geometry import capsule_capsule
-from wzk import get_stats
+# from wzk import get_stats
 
 from mopla.Optimizer.cost_functions import lqql_basin
 from rocal.Plots.plotting import plot_frame_difference

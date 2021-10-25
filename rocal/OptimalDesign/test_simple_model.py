@@ -4,7 +4,7 @@ from wzk.mpl import new_fig, save_fig, correlation_plot, hist_vlines
 from wzk import euclidean_norm, numeric_derivative, random_subset, change_tuple_order
 from scipy.optimize import minimize as minimize_scipy
 
-from Plots.util import true_best_with_noises
+from Plots.old.util import true_best_with_noises
 
 from rocal.OptimalDesign.oed import (task_a_optimality_wrapper, d_optimality_wrapper, greedy,
                                      detmax, configuration_histogram)
@@ -63,7 +63,7 @@ class Model:
         self.p_true = self.p_nominal + self.p_error
 
     def forward(self, x, p_true):
-        pass
+        raise NotImplementedError
 
     def forward2(self, x, p_error):
         p_error2 = p_error.reshape(self.p_nominal.shape)
@@ -147,13 +147,13 @@ class Arm2d(Model):
         self.p_true = self.p_nominal + self.p_error
 
     @staticmethod
-    def arm2d(q, l):
+    def arm2d(q, length):
         q_cs = np.cumsum(q, axis=-1)
-        tcp = np.stack([(np.cos(q_cs) * l).sum(axis=-1), (np.sin(q_cs) * l).sum(axis=-1)]).T
+        tcp = np.stack([(np.cos(q_cs) * length).sum(axis=-1), (np.sin(q_cs) * length).sum(axis=-1)]).T
         return tcp
 
     def forward(self, x, p_true):
-        return self.arm2d(q=p_true[0, :] + x, l=p_true[1, :])
+        return self.arm2d(q=p_true[0, :] + x, length=p_true[1, :])
 
 
 def mse_prediction(model, p, x, y):
@@ -190,7 +190,7 @@ def get_mse_parameter(p_true, p):
     return euclidean_norm(p - p_true, axis=-1, squared=True)
 
 
-def main(n_cal=None):
+def main():
     # For ncal = 1, greedy min and greedy max work really well
     save = False
     n = 1000
@@ -242,13 +242,13 @@ def main(n_cal=None):
 
     a_task_opt_fun = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_optval, prior_sigma=prior_sigma)
     d_opt_fun = d_optimality_wrapper(jac=jac_calset)
-    idx_greedy_ota, greedy_ota = greedy(n=n_calset, k=n_cal, fun=a_task_opt_fun)
+    # idx_greedy_ota, greedy_ota = greedy(n=n_calset, k=n_cal, fun=a_task_opt_fun)
     idx_greedy_nota, greedy_nota = greedy(n=n_calset, k=n_cal, fun=lambda _idx: -a_task_opt_fun(_idx))
     idx_greedy_od, greedy_od = greedy(n=n_calset, k=n_cal, fun=d_opt_fun)
     idx_greedy_nod, greedy_nod = greedy(n=n_calset, k=n_cal, fun=lambda _idx: -d_opt_fun(_idx))
 
     idx_det, det_ota = change_tuple_order([detmax(fun=a_task_opt_fun, n=n_calset, k=n_cal, excursion=2, max_loop=2)
-                                           for i in range(1000)])
+                                           for _ in range(1000)])
     idx_greedy_ota = idx_det[np.argmin(det_ota)]
     # # idx_greedy_ota = idx_det
     idx_det = np.unique(idx_det, axis=0)
@@ -285,7 +285,7 @@ def main(n_cal=None):
 
     i = -4
     perc_ota_greedy_min = np.sum(mse_test[i] > mse_test[:n]) / n
-    rel_med = mse_test[i] / np.median(mse_test[:n])
+    # rel_med = mse_test[i] / np.median(mse_test[:n])
     # print(f"{perc_ota_greedy_min} / {len(mse_test)} | {perc_nota_greedy_max} / {len(mse_test)}")
     # return perc_ota_greedy_min, perc_nota_greedy_max
     relative_perf = (mse_test[i] / min(mse_test[:n]) - 1)
@@ -293,9 +293,9 @@ def main(n_cal=None):
                                                             np.abs(noise_calset[idx[i]]).mean()))
 
     # return relative_perf, perc_ota_greedy_min, mse_parameter[i], np.abs(noise_calset[idx[i]]).mean(), rel_med
-    ax = correlation_plot(a=mse_parameter, b=mse_test, name_a='MSE Parameter', name_b='MSE Prediction',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
-                          lower_perc=0.1, upper_perc=99.9)
+    correlation_plot(a=mse_parameter, b=mse_test, name_a='MSE Parameter', name_b='MSE Prediction',
+                     hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                     lower_perc=0.1, upper_perc=99.9)
 
     ax = correlation_plot(a=np.abs(noise_calset[idx]).mean(axis=(-1, -2)), b=mse_test,
                           name_a='Noise', name_b='MSE Prediction')
@@ -323,9 +323,9 @@ def main(n_cal=None):
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
-    ax = configuration_histogram(idx_list=[idx[:n], idx_det, idx[np.argsort(mse_test)[:1000]]],
-                                 label_list=['random', 'detmax', 'best'],
-                                 color_list=['k', 'b', 'g'])
+    configuration_histogram(idx_list=[idx[:n], idx_det, idx[np.argsort(mse_test)[:1000]]],
+                            label_list=['random', 'detmax', 'best'],
+                            color_list=['k', 'b', 'g'])
 
     x_self_diff = np.linalg.norm(x_calset[idx][:, :, np.newaxis, :] -
                                  x_calset[idx][:, np.newaxis, :, :], axis=-1).mean(axis=(-2, -1))
@@ -398,54 +398,4 @@ main()
 # correlation_plot(b, d, name_a='Perc', name_b='Noise')
 # save_fig(fig=fig, formats='pdf')
 
-
 # np.save(PROJECT_ROOT + 'abcde.npy', (a, b, c, d, e, []))
-
-
-# for nc in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-#            20, 30, 40, 50]:
-#     ab = [main(nc) for _ in range(20)]
-#     a, b = change_tuple_order(ab)
-#     print(f"{nc} {int(np.round(np.mean(a)))} / {1000} | {int(np.round(np.mean(b)))} / {1000}")
-
-
-# each as mean over 20 random runs
-#     n = 1000
-#     n_test = 50
-#     n_calset = 100
-#     n_optval = 10000
-#     measurement_noise = 0.1
-#     max_parameter_error = 0.1
-# diagonal
-#     ny = 5
-#     nx = 5
-# n_cal =           [  1,   2,   3,   4,   5,   10,  20,  30, 40,  50]
-# greedy_min_perc = [ 64, 120, 160, 260, 216, 325, 482, 426, 487, 419]
-# greedy_max_perc = [904, 637, 794, 654, 699, 622, 581, 581, 472, 531]
-# fig, ax = new_fig(title='diagonal, nx=5, ny=5', scale=2)
-
-# full
-# ny = 2
-# nx = 5
-# n_cal =           [  1,   2,   3,   4,   5,   6,  7,   8,   9,   10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  30,  40,  50]
-# greedy_min_perc = [329, 355, 383, 339, 464, 533, 448, 454, 377, 392, 352, 315, 245, 357, 483, 263, 500, 345, 330, 499, 482, 362, 483]
-# greedy_max_perc = [770, 867, 800, 809, 629, 867, 799, 739, 790, 811, 868, 854, 829, 772, 815, 812, 786, 809, 774, 824, 712, 694, 521]
-# fig, ax = new_fig(title='full, nx=5, ny=2', scale=2)
-
-# full
-# ny = 1
-# nx = 5
-# n_cal =           [  1,   2,   3,   4,   5,   6,   7,   8,  9,   10,  20,  30,  40,  50]
-# greedy_min_perc = [445, 469, 412, 445, 521, 621, 406, 355, 435, 474, 532, 454, 383, 511]
-# greedy_max_perc = [701, 732, 720, 747, 616, 700, 686, 755, 759, 822, 612, 741, 632, 475]
-
-# n_test = 1000
-# greedy_min_perc = [351, 372, 473, 358, 528, 398, 411, 312, 332, 387, 382, 412, 332, 399]
-# greedy_max_perc = [768, 867, 833, 835, 659, 735, 774, 826, 795, 743, 710, 709, 757, 735]
-
-
-# fig, ax = new_fig(title='full, nx=5, ny=1', scale=2)#
-# ax.plot(n_cal, greedy_min_perc, marker='o', color='g', label='Greedy Min')
-# ax.plot(n_cal, greedy_max_perc, marker='o', color='r', label='Greedy Max')
-# ax.set_xlabel('Number of Measurement Points')
-# save_fig(fig=fig, formats='pdf')

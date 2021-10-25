@@ -116,7 +116,7 @@ xd01 = x1_l - x0_l
 ax_legend.set_xlim(0, 2*w)
 ax_legend.set_ylim(0, 1)
 
-ax_legend.add_patch(FancyBbox(xy=(offset*2*w, offset), width=2*w-2*offset*2*w, height=1-2*offset,
+ax_legend.add_patch(FancyBbox(xy=(offset*2*w, offset), width=2*w-2*offset*2*w, height=1-2*offset,  # noqa
                               color='#f2f2f2', zorder=-10, boxstyle='Round', pad=pad))
 
 # geometry.eye_pov(xy=(x0_l, y_legend[-1]), angle=0, radius=xd01/1.15, arc=cam_arc, ax=ax_legend, lw=cam_lw, color='k')

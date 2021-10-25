@@ -1,6 +1,7 @@
 import numpy as np
-from mopla.Kinematic.Robots import Justin19
-from mopla.Justin import parameter_torso as jtp
+
+from rokin.Robots import Justin19
+from rokin.Robots.Justin19 import justin19_par as jtp
 from rocal.Robots import RobotCal
 
 
@@ -123,7 +124,7 @@ p_l_m = [-0.1, 0.03, 0.05]
 
 class Justin19Cal(Justin19, RobotCal):
     def __init__(self, **kwargs):
-        Justin19.__init__(self)
+        Justin19.__init__()
         RobotCal.__init__(self, **kwargs)
 
         # DH
@@ -144,4 +145,3 @@ class Justin19Cal(Justin19, RobotCal):
         self.cm_f_idx = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
         self.cm_bool_c = cm_bool
         self.n_cm = len(self.cm)
-

@@ -5,6 +5,7 @@ from wzk import (read_msgpack, write_msgpack, change_tuple_order, print_stats,
                  combine_iterative_indices, delete_args, train_test_split)
 from datetime import datetime
 
+from rokin.Robots.Justin19.justin19_primitives import justin_primitives
 
 __order_rh = [1, 0]
 __order_rlh = [2, 1, 0]
@@ -20,7 +21,6 @@ def remove_poses_form_measurements(file, target_order, q_list=None, verbose=0):
 
     threshold = 0.1
     if q_list is None:
-        from mopla.Justin.primitives_torso import justin_primitives
         q_list = np.concatenate((justin_primitives(justin='getready_left_side_down')[0],
                                  justin_primitives(justin='getready')[0]))
 

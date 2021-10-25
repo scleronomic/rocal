@@ -3,9 +3,10 @@ import numpy as np
 from wzk.spatial import apply_noise, trans_rotvec2frame, frame_difference
 from wzk.random2 import noise
 
-from rocal.calibration import kinematic, set_bool_dict_false, get_active_parameters
-# noinspection PyUnresolvedReferences
-from rocal.Measurements.io2 import load_q, save_m
+from rocal.calibration import kinematic
+from rocal.parameter import set_bool_dict_false, get_active_parameters
+
+from rocal.Measurements.io2 import load_q, save_m  # noqa
 from rocal.Plots.plotting import hist_frame_difference
 
 
@@ -51,7 +52,7 @@ def create_dummy_measurements(*, cal_rob, x_dict, q,
 
     # Create different measurement noises
     t_wo_noise = np.tile(t[np.newaxis, ...], reps=(n_noise, 1, 1, 1, 1))
-    t_noise = apply_noise(frame=t_wo_noise, trans=trans_noise, rot=rot_noise, mode='normal')
+    t_noise = apply_noise(f=t_wo_noise, trans=trans_noise, rot=rot_noise, mode='normal')
     return t, t_noise
 
 
