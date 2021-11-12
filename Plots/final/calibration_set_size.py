@@ -55,7 +55,7 @@ def main():
 
     # remove_ticks(ax[1], v=1e2, axis='y')
 
-    save_fig(filename=ICHR20_CALIBRATION_FIGS + '/Final/size_of_calibration_set', formats='pdf', bbox=None)
+    save_fig(file=ICHR20_CALIBRATION_FIGS + '/Final/size_of_calibration_set', formats='pdf', bbox=None)
 
 
 if __name__ == '__main__':

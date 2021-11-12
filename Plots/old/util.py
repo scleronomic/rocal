@@ -50,4 +50,4 @@ def true_best_with_noises(err_r, err_b, obj_r, obj_b,
     ax.legend()
 
     if save_dir is not None:
-        save_fig(fig=fig, filename=save_dir + 'true_best_with_noises', bbox=None, formats=('png', 'pdf'))
+        save_fig(fig=fig, file=save_dir + 'true_best_with_noises', bbox=None, formats=('png', 'pdf'))

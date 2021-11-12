@@ -165,7 +165,7 @@ def bins():
     fig, ax = new_fig(width=fig_width_inch)
     plot_bins(ax=ax, o_bins=np.sqrt(ota_bins), err=err_mean_bins, kwargs=dict(color='k', marker='o'),
               kwargs_std=dict(alpha=0.2, color='k'))
-    save_fig(filename=dir_figures + 'dummy_j_bins', formats=('png', 'pdf'),
+    save_fig(file=dir_figures + 'dummy_j_bins', formats=('png', 'pdf'),
              bbox=None)
 
 
@@ -241,7 +241,7 @@ def correlation():
                           regression_line=True)
     ax.set_xlim(0.8, 5)
     ax.set_ylim(0.005, 0.08)
-    save_fig(filename=dir_figures + 'dummy_j_correlation', fig=fig,
+    save_fig(file=dir_figures + 'dummy_j_correlation', fig=fig,
              bbox=None, formats=('png', 'pdf'))
 
 
@@ -266,7 +266,7 @@ def full_vs_filtered():
                           regression_line=False)
     ax.set_xlim(0.8, 2.5)
     ax.set_ylim(0.005, 0.08)
-    save_fig(filename=dir_figures + 'dummy_j_filtered_correlation', fig=fig,
+    save_fig(file=dir_figures + 'dummy_j_filtered_correlation', fig=fig,
              bbox=None, formats=('png', 'pdf'))
 
 

@@ -97,7 +97,7 @@ def plot():
     ax.grid()
     ax.legend(loc='upper right', framealpha=0.5)
 
-    save_fig(filename=directory_fig + 'torque_equilibrium', fig=fig, formats='pdf', bbox=None)
+    save_fig(file=directory_fig + 'torque_equilibrium', fig=fig, formats='pdf', bbox=None)
 
 
 plot()

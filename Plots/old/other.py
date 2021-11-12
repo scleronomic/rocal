@@ -23,7 +23,7 @@ def tsne_embedding():
     ax.legend()
     ax.set_xlabel('$t_1$')
     ax.set_ylabel('$t_2$')
-    save_fig(filename='TSNE RIGHT ARM', formats=('png', 'pdf'))
+    save_fig(file='TSNE RIGHT ARM', formats=('png', 'pdf'))
 
     fig, ax = new_fig(aspect=1)
     ax.scatter(ab_pca[:n, 0], ab_pca[:n, 1], color='b', alpha=0.5)

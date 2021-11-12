@@ -82,7 +82,7 @@ def poses20_over_time():
         if i == 0:
             ax[0].legend()
 
-    save_fig(fig=fig, filename='vicon_calibration_over_time', formats='pdf')
+    save_fig(fig=fig, file='vicon_calibration_over_time', formats='pdf')
     return
 
 

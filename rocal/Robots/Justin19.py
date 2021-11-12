@@ -124,7 +124,7 @@ p_l_m = [-0.1, 0.03, 0.05]
 
 class Justin19Cal(Justin19, RobotCal):
     def __init__(self, **kwargs):
-        Justin19.__init__()
+        Justin19.__init__(self)
         RobotCal.__init__(self, **kwargs)
 
         # DH

@@ -12,6 +12,14 @@ from rocal.definitions import ICHR20_CALIBRATION, ICHR20_CALIBRATION_FIGS
 from matplotlib.patches import Rectangle
 
 
+def print_new_cal():
+    x2, _ = np.load(ICHR20_CALIBRATION + '/final_all.npy', allow_pickle=True)
+    '/Users/jote/Documents/DLR/Paper/ICHR20_Calibration/Data'
+    x2['dh']
+    x2['cp'] / 100
+    x2['ma']
+
+
 def add_margin(ax, pad, **kwargs):
     x0, x1 = ax.get_xlim()
     y0, y1 = ax.get_ylim()
@@ -23,9 +31,9 @@ def add_margin(ax, pad, **kwargs):
 
 def main():
     # Nominal
-    cal_rob0 = Justin19Cal(dkmc='000c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
-    cal_rob1 = Justin19Cal(dkmc='f00c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
-    cal_rob2 = Justin19Cal(dkmc='ff0c', ma0=True, fr0=True, use_imu=True, el_loop=1, add_nominal_offsets=False)
+    cal_rob0 = Justin19Cal(dkmc='000c', use_imu=True, el_loop=1, add_nominal_offsets=False)  # ma0=True, fr0=True,
+    cal_rob1 = Justin19Cal(dkmc='f00c', use_imu=True, el_loop=1, add_nominal_offsets=False)  # ma0=True, fr0=True,
+    cal_rob2 = Justin19Cal(dkmc='ff0c', use_imu=True, el_loop=1, add_nominal_offsets=False)  # ma0=True, fr0=True,
 
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob2, split=-1, seed=75)
 

@@ -139,6 +139,6 @@ ax_legend.text(x2_l, y_legend[-3], 'Occlusion Error', ha=ha, va=va, size=font_si
 ax_legend.text(x2_l, y_legend[-4], 'Orientation Error', ha=ha, va=va, size=font_size)
 ax_legend.text(x2_l, y_legend[-5], 'Target Marker', ha=ha, va=va, size=font_size)
 
-save_fig(filename=ICHR20_CALIBRATION_FIGS+'Final/calibration_sketch', fig=fig, formats=('png', 'pdf'), bbox=None)
+save_fig(file=ICHR20_CALIBRATION_FIGS+'Final/calibration_sketch', fig=fig, formats=('png', 'pdf'), bbox=None)
 
 # fig.savefig(fig=fig, fname=ICHR20_CALIBRATION+'Final/Calibration_Sketch2.pdf')

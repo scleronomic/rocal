@@ -34,4 +34,4 @@ if __name__ == '__main__':
     hvlines_grid(ax=ax, x=tracking_system_pos)
     ax.legend()
 
-    save_fig(filename='vicon_camera_poss_2020-08-17', fig=fig, formats='pdf')
+    save_fig(file='vicon_camera_poss_2020-08-17', fig=fig, formats='pdf')
