@@ -282,3 +282,9 @@ def get_q(cal_rob, split, seed=0):
 
     # (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test)
     return train_test_split(q0, q, t, split=split, shuffle=True, seed=seed)
+
+
+if __name__ == '__main__':
+    file = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1637234441.measurements"
+    q, t, imu = load_measurements_right_left_head(file=file, verbose=3)
+

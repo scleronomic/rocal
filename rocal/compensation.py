@@ -112,3 +112,18 @@ def get_corrected_q_lin(q, f, kin_fun,
         print_frame_difference(f1=f, f2=kin_fun(q1), title=None, mm=True)
 
     return q1
+
+
+if __name__ == '__main__':
+    import numpy as np
+
+    from wzk.spatial import frame_difference
+    from rocal.calibration import create_wrapper_kinematic
+    from rocal.Robots.Justin19 import Justin19Cal
+    from rocal.definitions import ICHR20_CALIBRATION
+
+    cal_rob = Justin19Cal(dkmc='ff0c', use_imu=True, el_loop=1, add_nominal_offsets=False)
+    x, _ = np.load(ICHR20_CALIBRATION + '/final_all.npy', allow_pickle=True)
+
+
+    kinematic = create_wrapper_kinematic(cal_rob=cal_rob, x=x)

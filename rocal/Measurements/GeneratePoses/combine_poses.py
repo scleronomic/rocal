@@ -1,45 +1,37 @@
-# Start with torso in get ready, left arm, pointing to bottom left
-# the makers need to point towards the ceiling (
 import numpy as np
 
-from Justin.Planner.slow_down_time import slow_down_q_path
-
-import Justin.parameter_torso as jtp
-from Justin.primitives_torso import justin_primitives, get_free_joints
-
-import Optimizer.InitialGuess.path as path_i
-import Optimizer.gradient_descent as opt2
-from Optimizer import feasibility_check as fc, choose_optimum
-
-
-import Optimizer.path as path
-from rocal.definitions import *
-import parameter
-from Kinematic.Robots import Justin19, com
-
 from wzk import get_exclusion_mask, read_msgpack, write_msgpack
+from wzk.trajectory import inner2full
+from rokin.Robots.Justin19 import justin19_par as jtp, justin19_primitives, Justin19
+from rokin.Vis.robot_3d import robot_path_interactive
+
+from mopla.Justin.Planner.slow_down_time import slow_down_q_path
+from mopla.Optimizer import InitialGuess, gradient_descent, feasibility_check, choose_optimum
+from mopla import parameter
+
+from rocal.definitions import *
+
+ICHR20_CALIBRATION_DATA = ICHR20_CALIBRATION
+
 
 # kauket_file = '/net/kauket/home_local/baeuml/tmp/two_arm_A_10.msgpk'
 
 # General
 verbose = 1
 
-par = parameter.initialize_par()
-par.robot = Justin19()
+par = parameter.Parameter(robot=Justin19())
+
 parameter.initialize_sc(sc=par.sc, robot=par.robot)
-par.com = com
 world_limits = np.array([[-2, 2],
                          [-2, 2],
                          [-0.5, 3.5]])
 
 par.world = parameter.World(n_dim=par.robot.n_dim, limits=world_limits)
 
-par.size.n_waypoints = 22
-par.size.n_dof = par.robot.n_dof
 
-par.planning.include_end = False
-par.planning.obstacle_collision = False
-par.planning.self_collision = True
+par.plan.include_end = False
+par.plan.obstacle_collision = False
+par.plan.self_collision = True
 par.check.obstacle_collision = False
 par.check.self_collision = True
 
@@ -56,10 +48,7 @@ par.sc.n_substeps_check = 2
 
 gd = parameter.GradientDescent()
 gd.n_steps = 100
-gd.step_size = 1
-gd.adjust_step_size = True
-gd.staircase_iteration = False
-gd.grad_tol = 0.5
+gd.clipping = 0.5
 gd.n_processes = 12
 n_multi_start_rp = [[0, 1, 2, 3], [1, 2 * gd.n_processes - 1, 2 * gd.n_processes, 1 * gd.n_processes]]
 
@@ -80,9 +69,9 @@ def calculate_trajectories_between(q_list):
     fail_count_max = 50
     n = len(q_list)
 
-    get_x0 = path_i.q0_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
-                                      n_waypoints=par.size.n_waypoints, order_random=True, mode='inner')
-    q_path_list = np.zeros((n-1, par.size.n_waypoints, par.size.n_dof))
+    get_x0 = InitialGuess.path.q0_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
+                                                 n_waypoints=par.n_waypoints, order_random=True, mode='inner')
+    q_path_list = np.zeros((n-1, par.n_waypoints, par.robot.n_dof))
 
     i = 0
     fail_count = 0
@@ -92,20 +81,19 @@ def calculate_trajectories_between(q_list):
         q_start = q_list[i, np.newaxis]
         q_end = q_list[i+1, np.newaxis]
 
-        q_opt = path_i.q0_random(start=q_start, end=q_end, robot=par.robot,
-                                 n_waypoints=par.size.n_waypoints, n_random_points=0, order_random=True)
-        feasible = fc.feasibility_check(q=q_opt, par=par, verbose=0)
+        q_opt = InitialGuess.path.q0_random(start=q_start, end=q_end, robot=par.robot,
+                                            n_waypoints=par.n_waypoints, n_random_points=0, order_random=True)
+        feasible = feasibility_check(q=q_opt, par=par, verbose=0)
         feasible = feasible >= 0
 
         if not feasible:
             x0 = get_x0(start=q_start, end=q_end)
 
             par.weighting = weighting.copy()
-            q_opt, objective = opt2.gd_chomp(q0=x0, q_start=q_start, q_end=q_end, par=par, gd=gd,
-                                             return_all=False, verbose=0)
+            q_opt, objective = gradient_descent.gd_chomp(q0=x0, q_start=q_start, q_end=q_end, par=par, gd=gd)
 
-            q_opt = path.x_inner2x(inner=q_opt, start=q_start, end=q_end)
-            feasible = fc.feasibility_check(q=q_opt, par=par, verbose=0)
+            q_opt = inner2full(inner=q_opt, start=q_start, end=q_end)
+            feasible = feasibility_check(q=q_opt, par=par, verbose=0)
             feasible = feasible >= 0
             q_opt, _ = choose_optimum.get_feasible_optimum(q=q_opt, par=par, verbose=2)
             print(feasible, q_opt.shape[0])
@@ -133,18 +121,18 @@ def calculate_trajectories_between(q_list):
 def calculate_path(directory, n_samples, mode='ordered'):
     print(f"directory: {directory}, n_samples: {n_samples}")
 
-    q_list = np.load(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_{n_samples}.npy")
+    q_list = np.load(f"{directory}/{mode}_poses_{n_samples}.npy")
 
     q_path_list = calculate_trajectories_between(q_list=q_list)
 
-    np.save(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_path_list)
+    np.save(f"{directory}/{mode}_poses_path_{n_samples}.npy", q_path_list)
 
     return q_path_list
 
 
 def no_unnecessary_motion(directory, n_samples, variable_joints, q0, mode='ordered'):
     try:
-        q_test_paths = np.load(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy")
+        q_test_paths = np.load(f"{directory}/{mode}_poses_path_{n_samples}.npy")
         print("Load path.npy")
 
     except FileNotFoundError:
@@ -155,7 +143,7 @@ def no_unnecessary_motion(directory, n_samples, variable_joints, q0, mode='order
     for i in range(n_samples + 1):
         q_test_paths_temp = q_test_paths[i].copy()
         q_test_paths_temp[..., ~variable_joints] = q0[..., ~variable_joints].ravel()
-        feasible = fc.feasibility_check(q=q_test_paths_temp[np.newaxis, ...], par=par, verbose=0)
+        feasible = feasibility_check(q=q_test_paths_temp[np.newaxis, ...], par=par, verbose=0)
         feasible = feasible >= 0
         if feasible:
             q_test_paths[i] = q_test_paths_temp
@@ -165,7 +153,7 @@ def no_unnecessary_motion(directory, n_samples, variable_joints, q0, mode='order
             # animate_poses(q=q_test_paths[o-1:o+1].reshape((-1, par.shape.n_dof)))
 
     # Create smooth path [List of Lists]
-    np.save(ICHR20_CALIBRATION_DATA + f"{directory}/{mode}_poses_path_{n_samples}.npy", q_test_paths)
+    np.save(f"{directory}/{mode}_poses_path_{n_samples}.npy", q_test_paths)
 
 
 def smooth_paths(q_path_list, verbose=1):
@@ -203,8 +191,7 @@ def test_read():
     q = np.concatenate(q_list2)
 
     print(q.shape)
-    ja.sphere_path_animation(q=np.array(q), robot=par.robot, show_frames=[13, 22])
-    # TODO check joint limits
+    robot_path_interactive(q=np.array(q), robot=par.robot, kwargs_frames=dict(f_idx_robot=[13, 22]))
 
     q_poses = np.load('/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_right3/ordered_poses_20.npy')
 
@@ -225,11 +212,11 @@ def main():
     # n_samples_list = [10, 100, 1000, 10000]
     # # n_samples_list = [10]
 
-    q0 = justin_primitives(justin='getready')
+    q0 = justin19_primitives.justin_primitives(justin='getready')
     # q_test0[jtp.JOINTS_ARM_LEFT] = np.array([0, -80, 90, -40, 0, 0, 0]) * np.pi / 180
     # q0[jtp.IDX_J_LEFT] = np.array([0, -80, 0, 0, 0, 0, 0]) * np.pi / 180
 
-    variable_joints = get_free_joints(torso=True, right=True, left=True)
+    variable_joints = justin19_primitives.get_free_joints(torso=True, right=True, left=True)
 
     # for f in [str(i) for i in range(10, 20)]:
     for f in ['TEST']:
@@ -264,14 +251,17 @@ def main():
 # q_list = np.load(ICHR20_CALIBRATION_DATA + 'Measurements/front_tcp_calibration_50_fine_ordered_subset.npy')
 
 
-n = 20
-directory = ICHR20_CALIBRATION_DATA + 'TorsoRightLeft/TCP_right_left3_cal/'
-q_list = np.load(directory + f'ordered_poses_{n}.npy',)
+n = 50
+directory = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_left3/"
+# q_list = np.load(directory + f'ordered_poses_{n}.npy',)
 
-fc.feasibility_check(q=q_list, par=par)
-q_path_list = calculate_trajectories_between(q_list=q_list)
-np.save(directory + f'ordered_paths_{n}.npy', q_path_list)
+# feasibility_check(q=q_list, par=par)
+# q_path_list = calculate_trajectories_between(q_list=q_list)
+# np.save(directory + f'ordered_paths_{n}.npy', q_path_list)
 #
+
+file = f"/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_left3/ordered_paths_{n}.npy"
+q_path_list = np.load(file)
 q_path_list = smooth_paths(q_path_list)
 write_msgpack(file=directory + f'random_poses_smooth_{n}.bin',
               nested_list=q_path_list)
