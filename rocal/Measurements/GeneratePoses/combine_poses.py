@@ -2,15 +2,15 @@ import numpy as np
 
 from wzk import get_exclusion_mask, read_msgpack, write_msgpack
 from wzk.trajectory import inner2full
+
 from rokin.Robots.Justin19 import justin19_par as jtp, justin19_primitives, Justin19
 from rokin.Vis.robot_3d import robot_path_interactive
 
-from mopla.Justin.Planner.slow_down_time import slow_down_q_path
+from mopla.Planner.slow_down_time import slow_down_q_path
 from mopla.Optimizer import InitialGuess, gradient_descent, feasibility_check, choose_optimum
-from mopla import parameter
+from mopla.Parameter import parameter
 
 from rocal.definitions import *
-
 ICHR20_CALIBRATION_DATA = ICHR20_CALIBRATION
 
 
@@ -20,8 +20,8 @@ ICHR20_CALIBRATION_DATA = ICHR20_CALIBRATION
 verbose = 1
 
 par = parameter.Parameter(robot=Justin19())
-
-parameter.initialize_sc(sc=par.sc, robot=par.robot)
+par.n_waypoints = 20
+parameter.initialize_sc(par=par)
 world_limits = np.array([[-2, 2],
                          [-2, 2],
                          [-0.5, 3.5]])
@@ -52,16 +52,11 @@ gd.clipping = 0.5
 gd.n_processes = 12
 n_multi_start_rp = [[0, 1, 2, 3], [1, 2 * gd.n_processes - 1, 2 * gd.n_processes, 1 * gd.n_processes]]
 
-par.weighting.joint_motion = np.array([10, 5, 5,
-                                       3, 3, 2, 2, 1, 1, 1,
-                                       3, 3, 2, 2, 1, 1, 1,
-                                       2, 2])
-par.weighting.length = np.linspace(start=20, stop=1, num=gd.n_steps + 1)
-par.weighting.length[-1] = 1
-par.weighting.collision = np.linspace(start=500, stop=500, num=gd.n_steps + 1)
-par.weighting.collision[-1] = 1000
 
-parameter.initialize_oc(oc=par.oc, world=par.world, robot=par.robot, obstacle_img='empty')
+par.weighting.length = 1
+par.weighting.collision = 500
+
+parameter.initialize_oc(par=par, obstacle_img='empty')
 
 
 def calculate_trajectories_between(q_list):
@@ -69,33 +64,34 @@ def calculate_trajectories_between(q_list):
     fail_count_max = 50
     n = len(q_list)
 
-    get_x0 = InitialGuess.path.q0_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
-                                                 n_waypoints=par.n_waypoints, order_random=True, mode='inner')
+    get_x0 = InitialGuess.path.q0s_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
+                                                  n_waypoints=par.n_waypoints, order_random=True, mode='inner')
     q_path_list = np.zeros((n-1, par.n_waypoints, par.robot.n_dof))
 
     i = 0
     fail_count = 0
     weighting = par.weighting.copy()
     while i < n-1:
-        print(f"Path: {i}/{n}")
+        print(f"Path: {i}/{n-1}")
         q_start = q_list[i, np.newaxis]
         q_end = q_list[i+1, np.newaxis]
 
         q_opt = InitialGuess.path.q0_random(start=q_start, end=q_end, robot=par.robot,
                                             n_waypoints=par.n_waypoints, n_random_points=0, order_random=True)
+        q_opt = q_opt[np.newaxis, :, :]
         feasible = feasibility_check(q=q_opt, par=par, verbose=0)
         feasible = feasible >= 0
 
         if not feasible:
             x0 = get_x0(start=q_start, end=q_end)
-
+            par.q_start, par.q_end = q_start, q_end
             par.weighting = weighting.copy()
-            q_opt, objective = gradient_descent.gd_chomp(q0=x0, q_start=q_start, q_end=q_end, par=par, gd=gd)
+            q_opt, objective = gradient_descent.gd_chomp(q0=x0, par=par, gd=gd)
 
             q_opt = inner2full(inner=q_opt, start=q_start, end=q_end)
             feasible = feasibility_check(q=q_opt, par=par, verbose=0)
             feasible = feasible >= 0
-            q_opt, _ = choose_optimum.get_feasible_optimum(q=q_opt, par=par, verbose=2)
+            q_opt, *_ = choose_optimum.get_feasible_optimum(q=q_opt, par=par, verbose=2)
             print(feasible, q_opt.shape[0])
 
             if q_opt.shape[0] == 0:
@@ -251,7 +247,6 @@ def main():
 # q_list = np.load(ICHR20_CALIBRATION_DATA + 'Measurements/front_tcp_calibration_50_fine_ordered_subset.npy')
 
 
-n = 50
 directory = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_left3/"
 # q_list = np.load(directory + f'ordered_poses_{n}.npy',)
 
@@ -260,8 +255,116 @@ directory = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_lef
 # np.save(directory + f'ordered_paths_{n}.npy', q_path_list)
 #
 
-file = f"/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_left3/ordered_paths_{n}.npy"
-q_path_list = np.load(file)
-q_path_list = smooth_paths(q_path_list)
-write_msgpack(file=directory + f'random_poses_smooth_{n}.bin',
-              nested_list=q_path_list)
+
+# n = 999
+# file_poses = f"/Users/jote/Documents/Code/Python/DLR/rocal/ordered_poses_{n}.npy"
+# q_pose_list = np.load(file_poses)
+#
+# for n in [5, 10, 20, 50]:
+#     # f"/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/TCP_left3/
+#     file_poses = f"/Users/jote/Documents/Code/Python/DLR/rocal/ordered_poses_{n}.npy"
+#     # file_paths = f"/Users/jote/Documents/Code/Python/DLR/rocal/ordered_paths_{n}.npy"
+#     # q_pose_list = np.load(file_poses)
+#     i = np.random.choice(np.arange(999), n)
+#
+#     q = q_pose_list[i]
+#
+#     # q_path_list = np.load(file_paths)
+#     # q_path_list = justin19_primitives.mirror_arm_motion(q=q_path_list)
+#     # q_pose_list = justin19_primitives.mirror_arm_motion(q=q_pose_list)
+#     # np.save(file_paths, q_path_list)
+#     np.save(file_poses, q)
+#
+#
+#     # a = q_path_list[1:, 0, :]
+#     # b = q_pose_list[1:-1, 0, :]
+#     # print(np.allclose(a, b))
+#     # print(par.robot.get_frames(b)[:, 22, :3, 3].mean(axis=0))
+#     # q_path_list = smooth_paths(q_path_list)
+# # write_msgpack(file=directory + f'random_poses_smooth_{n}.bin',
+# #               nested_list=q_path_list)
+
+
+
+par.robot.switch2calibrated()
+# x = par.robot.get_frames(q_pose_list)[:, 0, 22, :3, 3]
+
+
+
+
+n = 20
+file_poses_cal = f"/Users/jote/Documents/Code/Python/DLR/rocal/cal_ordered_poses_{n}.npy"
+file_paths_cal = f"/Users/jote/Documents/Code/Python/DLR/rocal/cal_ordered_paths_{n}.npy"
+# file_poses = f"/Users/jote/Documents/Code/Python/DLR/rocal/ordered_poses_{n}.npy"
+# file_paths = f"/Users/jote/Documents/Code/Python/DLR/rocal/ordered_paths_{n}.npy"
+
+q_pose_list = np.load(file_poses_cal)
+
+q_getready = justin19_primitives.justin_primitives(justin='getready')
+
+q_pose_list2 = np.zeros((n*2+1, 1, 19))
+q_pose_list2[:] = q_getready
+q_pose_list2[1::2] = q_pose_list
+
+q_pose_list2 = q_pose_list2[:-1]
+q_pose_list2 = np.split(q_pose_list2, n)
+# q_path_list = [calculate_trajectories_between(q_list=q_pose_list2[i]) for i in range(n)]
+# np.save(file_paths_cal, q_path_list)
+
+
+# TODO add the direct check into the main planner
+
+q_path_list = np.load(file_paths_cal)[:, 0]
+import numpy as np
+from mopla.main import chomp_mp
+from mopla.Parameter import get_par_j19
+from rokin.Vis.robot_3d import robot_path_interactive
+par, gd, staircase = get_par_j19()
+gd.n_processes = 20
+
+q_path_list2 = []
+for i, qq in enumerate(q_path_list):
+    print(i)
+    par.q_start = qq[0]
+    par.q_end = qq[-1]
+    qq = chomp_mp(par=par, gd=gd, staircase=staircase, verbose=0)[0]
+    print(qq.shape)
+    q_path_list2.append(qq)
+
+q_path_list2 = np.reshape(q_path_list2, (20, 20, 19))
+np.save(file_paths_cal, q_path_list3)
+q_path_list3 = np.zeros((n*2, 20, 19))
+q_path_list3[::2, :, :] = q_path_list2
+q_path_list3[1::2, :, :] = q_path_list2[:, ::-1, :]
+
+q_path_list3 = np.reshape(q_path_list3, (800, 19))
+robot_path_interactive(q=q_path_list3, robot=par.robot)
+# two cal
+# from mopla.nullspace import solve_pseudo
+#
+# q = q_pose_list.copy()
+# par.xc.f_idx = 22
+# par.robot.switch2nominal()
+# par.xc.frame = np.round(par.robot.get_frames(np.squeeze(q[0]))[par.xc.f_idx], 4)
+#
+# par.robot.switch2calibrated()
+# for i in range(100):
+#     q = solve_pseudo(robot=par.robot, q=q, f0=par.xc.frame, f_idx=par.xc.f_idx, mode='f', clip=np.deg2rad(0.1))
+#     q = par.robot.prune_joints2limits(q)
+#
+# print((par.robot.get_frames(np.squeeze(q))[..., par.xc.f_idx, :3, 3] - par.xc.frame[:3, 3]).max())
+# print(np.rad2deg(q - q_pose_list).max())
+# print(np.abs(np.rad2deg(q - q_pose_list)).mean())
+# np.save(file_poses_cal, q)
+#
+
+# q_o, route = order_poses(q=q, q0=q_getready,
+#                          variable_joints=justin19_primitives.get_free_joints(torso=True, right=True, left=True),
+#                          time_limit=max(n, 600), verbose=0)
+
+
+
+# TCP_left4
+# TODO, write short not into TCP3, just a feasible subset which could be mirrored from
+# TCP_right3
+# not the same configurations as in TCP_

@@ -99,12 +99,6 @@ min_z = 0.3  # TODO apply for all
 #  - Initial configuration
 q_getready = pp.justin_primitives(justin='getready')
 
-# - Length weighting between the joints
-joint_weighting = np.array([10, 5, 5,
-                            3, 3, 2, 2, 1, 1, 1,
-                            3, 3, 2, 2, 1, 1, 1,
-                            5, 5])
-
 # - Traveling Salesman Time Limit
 tsp_time_limit_sec = 300
 
