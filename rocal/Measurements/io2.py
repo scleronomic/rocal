@@ -5,7 +5,7 @@ from wzk import (read_msgpack, write_msgpack, change_tuple_order, print_stats,
                  combine_iterative_indices, delete_args, train_test_split)
 from datetime import datetime
 
-from rokin.Robots.Justin19.justin19_primitives import justin_primitives
+from rokin.Robots.Justin19.justin19_primitives import justin19_primitives
 
 __order_rh = [1, 0]
 __order_rlh = [2, 1, 0]
@@ -21,8 +21,8 @@ def remove_poses_form_measurements(file, target_order, q_list=None, verbose=0):
 
     threshold = 0.1
     if q_list is None:
-        q_list = np.concatenate((justin_primitives(justin='getready_left_side_down')[0],
-                                 justin_primitives(justin='getready')[0]))
+        q_list = np.concatenate((justin19_primitives(justin='getready_left_side_down')[0],
+                                 justin19_primitives(justin='getready')[0]))
 
     q, t, imu = load_measurements(file=file, target_order=target_order)
 
@@ -288,4 +288,3 @@ if __name__ == '__main__':
     pass
     # file = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1637234441.measurements"
     # q, t, imu = load_measurements_right_left_head(file=file, verbose=3)
-

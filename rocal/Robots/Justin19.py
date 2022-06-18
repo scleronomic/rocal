@@ -143,7 +143,7 @@ class Justin19Cal(Justin19, RobotCal):
         self.n_ma = len(self.masses)
         self.ma = np.hstack((jtp.MASS_POS[:, :3], jtp.MASSES[:, np.newaxis] / 100))
 
-        # FR
+        # CM
         self.cm = np.stack((f_world_base0, f_right_target0, f_left_target0), axis=0)
         self.cm_f_idx = [jtp.IDX_F_RIGHT_TCP, jtp.IDX_F_LEFT_TCP]
         self.cm_bool_c = cm_bool

@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+from wzk import spatial
 
 
 class Parameter:
@@ -7,7 +8,9 @@ class Parameter:
         # Justin, two marker
         self.lambda_trans, self.lambda_rot = 1000, 0  # was 100
         self.f_weighting = [1, 1]
-        
+
+        self.x_weighting = 0
+
         self.prior_sigma = 0.02  # 0.01  # was  0.01 for dummy
         self.mu_sigma = 0  #
         
@@ -98,7 +101,7 @@ def get_active_parameters(cal_rob):
     elif ma == 'f':
         ma_bool = np.ones((n_ma, m_ma), dtype=bool)
     elif ma == 'c':
-        ma_bool = cal_rob.ma_c
+        ma_bool = cal_rob.ma_bool_c
         assert ma_bool.shape == (n_ma, m_ma)
     else:
         raise ValueError(__error_string.format('ma', ma))
@@ -115,7 +118,7 @@ def get_active_parameters(cal_rob):
     elif cm == 'f':
         cm_bool = np.ones((n_cm, m_cm), dtype=bool)
     elif cm == 'c':
-        cm_bool = cal_rob.cm_c
+        cm_bool = cal_rob.cm_bool_c
         assert cm_bool.shape == (n_cm, m_cm)
     else:
         raise ValueError(__error_string.format('ma', ma))
@@ -212,10 +215,10 @@ def create_x_unwrapper(cm_bool, dh_bool, el_bool, ma_bool,
 
 
 def offset_nominal_parameters(cal_rob,
-                              dh, el, ma):
+                              dh, el, ma, cm):
     # Update nominal values of robot
     dh2 = cal_rob.dh + dh
     el2 = cal_rob.el + el
     ma2 = cal_rob.ma + ma
-
-    return dh2, el2, ma2
+    cm2 = cal_rob.cm @ spatial.trans_rotvec2frame(trans=cm[:, :3], rotvec=cm[:, 3:])
+    return dh2, el2, ma2, cm2

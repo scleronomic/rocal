@@ -5,7 +5,7 @@ from wzk.geometry import capsule_capsule
 # from wzk import get_stats
 
 from mopla.Optimizer.cost_functions import lqql_basin
-from rocal.Plots.plotting import plot_frame_difference
+from rocal.Vis.plotting import plot_frame_difference
 
 
 def measure_frame_difference(frame_a, frame_b, weighting=None,
@@ -36,9 +36,7 @@ def build_objective_cal_marker(q, t,
     def objective(x, verbose=0):
         f, cm = kin_fun(q=q, x=x)
 
-        #
-        cm = trans_rotvec2frame(trans=cm[:, :3], rotvec=cm[:, 3:])
-        cm = cal_rob.cm @ cm
+
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
         obj = measure_frame_difference(frame_a=t2, frame_b=t, weighting=cal_par.f_weighting,
@@ -48,7 +46,7 @@ def build_objective_cal_marker(q, t,
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
-            stats = plot_frame_difference(f0=t, f1=2, frame_names=None, verbose=verbose-1)
+            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)
             return stats, obj
 
         return obj
@@ -116,8 +114,6 @@ def build_objective_cal_touch(q, t,
 
     def objective(x, verbose=0):
         f, cm = kin_fun(q=q, x=x)
-        cm = trans_rotvec2frame(trans=cm[:, :3], rotvec=cm[:, 3:])
-        cm = cal_rob.cm @ cm
 
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 

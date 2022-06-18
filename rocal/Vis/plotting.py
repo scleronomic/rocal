@@ -7,6 +7,11 @@ from wzk.spatial import frame2trans_rotvec, frame_difference
 from wzk.mpl import new_fig, save_all, error_area, plot_projections_2d
 
 
+def print_stats2(stats):
+    print_table(data=stats.mean(axis=0) * [[1000], [1]], rows=[f'Translation [mm]', 'Rotation [deg]'],
+                columns=['mean', 'std', 'median', 'min', 'max'])
+
+
 # Visualization
 def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
     """
@@ -46,8 +51,8 @@ def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
             print(d_trans[idx_worst[:n]])
 
     if verbose > 0:
-        print_table(data=stats.mean(axis=0)*[[1000], [1]], rows=[f'Translation [mm]', 'Rotation [deg]'],
-                    columns=['mean', 'std', 'median', 'min', 'max'])
+        print_stats2(stats=stats)
+
     return stats
 
 

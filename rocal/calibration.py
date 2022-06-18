@@ -52,7 +52,7 @@ def kinematic(cal_rob,
               q, dh, el, ma, cm):
 
     if cal_rob.add_nominal_offsets:
-        dh, el, ma = offset_nominal_parameters(cal_rob=cal_rob, dh=dh, el=el, ma=ma)
+        dh, el, ma, cm = offset_nominal_parameters(cal_rob=cal_rob, dh=dh, el=el, ma=ma, cm=cm)
 
     if cal_rob.use_imu:
         imu, q = np.split(q, [3], axis=-1)
