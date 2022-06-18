@@ -1,4 +1,4 @@
-from wzk.spatial import trans_rotvec2frame
+from wzk import spatial
 
 from rocal.calibration import calibrate
 from rocal.Measurements.io2 import get_q
@@ -28,7 +28,7 @@ def search_world_frame(_cal_rob, q, t):
                                cal_rob=_cal_rob, cal_par=cal_par)
         if _stats[0, 0, 0] < threshold:
             print(_stats[:, 0, 0].meand(axis=0))
-            print(trans_rotvec2frame(trans=_x[:3], rotvec=_x[3:6]))
+            print(spatial.trans_rotvec2frame(trans=_x[:3], rotvec=_x[3:6]))
 
 
 if __name__ == '__main__':
