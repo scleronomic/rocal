@@ -20,7 +20,7 @@ ICHR20_CALIBRATION_DATA = ICHR20_CALIBRATION
 verbose = 1
 
 par = parameter.Parameter(robot=Justin19())
-par.n_waypoints = 20
+par.n_wp = 20
 parameter.initialize_sc(par=par)
 world_limits = np.array([[-2, 2],
                          [-2, 2],
@@ -65,8 +65,8 @@ def calculate_trajectories_between(q_list):
     n = len(q_list)
 
     get_x0 = InitialGuess.path.q0s_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
-                                                  n_waypoints=par.n_waypoints, order_random=True, mode='inner')
-    q_path_list = np.zeros((n-1, par.n_waypoints, par.robot.n_dof))
+                                                  n_wp=par.n_wp, order_random=True, mode='inner')
+    q_path_list = np.zeros((n-1, par.n_wp, par.robot.n_dof))
 
     i = 0
     fail_count = 0
@@ -77,7 +77,7 @@ def calculate_trajectories_between(q_list):
         q_end = q_list[i+1, np.newaxis]
 
         q_opt = InitialGuess.path.q0_random(start=q_start, end=q_end, robot=par.robot,
-                                            n_waypoints=par.n_waypoints, n_random_points=0, order_random=True)
+                                            n_wp=par.n_wp, n_random_points=0, order_random=True)
         q_opt = q_opt[np.newaxis, :, :]
         feasible = feasibility_check(q=q_opt, par=par, verbose=0)
         feasible = feasible >= 0
@@ -161,7 +161,7 @@ def smooth_paths(q_path_list, verbose=1):
     for q_path in q_path_list:
         path_smooth = slow_down_q_path(q=q_path, mean_vel_q=mean_vel_q, max_vel_q=max_vel_q,
                                        delta_ramps=delta_ramps, timestep_size=timestep_size,
-                                       infinity_joints=par.robot.infinity_joints)
+                                       is_periodic=par.robot.is_periodic)
         q_test_paths_smooth.append(path_smooth.tolist())  # smooth list for writing to msgpack
         if verbose > 0:
             print('Smooth path shape:', path_smooth.shape)

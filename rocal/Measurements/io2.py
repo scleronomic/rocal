@@ -11,29 +11,6 @@ __order_rh = [1, 0]
 __order_rlh = [2, 1, 0]
 
 
-def test_torso_left_vicon_uncalibrated():
-    file_a = '/home/tenh_jo/Checking_Calibration/torso-left-vicon-uncalibrated.bin'
-    file_b = '/home/tenh_jo/Checking_Calibration/torso-left-vicon.bin'
-    measurement_a = np.array(read_msgpack(file_a)).reshape((-1, 4, 4))
-    measurement_a = np.delete(measurement_a, 1, axis=0)
-    measurement_b = np.array(read_msgpack(file_b)).reshape((-1, 4, 4))
-
-    x_a = measurement_a[:, :3, -1]
-    x_b = measurement_b[:, :3, -1]
-    d_a = x_a - x_a.mean(axis=0)
-    d_b = x_b - x_b.mean(axis=0)
-
-    dn_a = np.linalg.norm(d_a, axis=-1)
-    dn_b = np.linalg.norm(d_b, axis=-1)
-
-    print(np.round(dn_a*1000, 4))
-    print(np.round(dn_b*1000, 4))
-
-    print(np.round(dn_a.mean()*1000, 4))
-    print(np.round(dn_b.mean()*1000, 4))
-
-
-
 def imu2gravity(imu):
     imu = imu / np.linalg.norm(imu, axis=-1, keepdims=True) * 9.81
     imu = imu[:, [2, 1, 0]]
@@ -308,6 +285,7 @@ def get_q(cal_rob, split, seed=0):
 
 
 if __name__ == '__main__':
-    file = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1637234441.measurements"
-    q, t, imu = load_measurements_right_left_head(file=file, verbose=3)
+    pass
+    # file = "/volume/USERSTORE/tenh_jo/0_Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1637234441.measurements"
+    # q, t, imu = load_measurements_right_left_head(file=file, verbose=3)
 

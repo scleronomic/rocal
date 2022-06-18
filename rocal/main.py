@@ -33,7 +33,7 @@ def search_world_frame(_cal_rob, q, t):
 
 if __name__ == '__main__':
 
-    cal_rob = Justin19Cal(dkmc='000c', ma0=True, fr0=True, use_imu=False, el_loop=1)
+    cal_rob = Justin19Cal(dkmc='cc0c', ma0=True, fr0=True, use_imu=False, el_loop=1)
 
     directory = ICHR20_CALIBRATION + '/Measurements/600'
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)

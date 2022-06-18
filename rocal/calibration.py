@@ -1,13 +1,7 @@
 import numpy as np
 
 
-from wzk.spatial import frame_difference
-from wzk.files import safe_create_dir
-from wzk.math2 import random_subset, numeric_derivative
-from wzk.multiprocessing2 import mp_wrapper
-from wzk.printing import print_progress
-from wzk.strings import uuid4
-from wzk.pyOpt2 import minimize_slsqp
+from wzk import spatial, files, math2, printing, strings, pyOpt2, multiprocessing2
 
 from rokin import forward
 
@@ -107,7 +101,7 @@ def wrapper_numeric_kin_jac(q, cal_rob):
     calc_targets_cal = create_wrapper_kinematic(x_wrapper=x_wrapper, cal_rob=cal_rob, q=q)
 
     def jac(x):
-        return numeric_derivative(fun=calc_targets_cal, x=x)
+        return math2.numeric_derivative(fun=calc_targets_cal, x=x)
 
     return jac, n
 
@@ -155,7 +149,7 @@ def calibrate(cal_rob, cal_par, x0_noise,
 
     # Main
     cal_par.options['disp'] = verbose > 2
-    x = minimize_slsqp(fun=obj_fun_test, x0=x0, options=cal_par.options, verbose=verbose-1)
+    x = pyOpt2.minimize_slsqp(fun=obj_fun_test, x0=x0, options=cal_par.options, verbose=verbose-1)
 
     # Post
     if q_test is None or t_test is None:
@@ -182,12 +176,12 @@ def __calibrate_subset_wrapper(q_cal, t_cal, q_test, t_test, fun, verbose=0):
 def calibrate_subsets(idx_list, fun, n_processes=1, directory=None, verbose=1):
 
     def __fun(idx_list2):
-        __uuid4 = uuid4()
+        __uuid4 = strings.uuid4()
         x_list = []
         stats_list = []
         for i, idx in enumerate(idx_list2):
             if verbose > 0:
-                print_progress(i, len(idx_list2))
+                printing.print_progress(i, len(idx_list2))
             x, stats = fun(idx)
             x_list.append(x)
             stats_list.append(stats)
@@ -198,12 +192,12 @@ def calibrate_subsets(idx_list, fun, n_processes=1, directory=None, verbose=1):
         return np.array(x_list), np.array(stats_list)
 
     if isinstance(idx_list, tuple) and len(idx_list) == 3:
-        idx_list = random_subset(n=idx_list[0], k=[idx_list[1]], m=idx_list[2])
+        idx_list = math2.random_subset(n=idx_list[0], k=[idx_list[1]], m=idx_list[2])
 
     if directory:
-        safe_create_dir(directory=directory)
+        files.safe_mkdir(directory=directory)
 
-    return mp_wrapper(idx_list, fun=__fun, n_processes=n_processes)
+    return multiprocessing2.mp_wrapper(idx_list, fun=__fun, n_processes=n_processes)
 
 
 # Post Processing
@@ -213,7 +207,7 @@ def evaluate_x(x_list, cal_rob, q, t, squared=True):
 
     t1 = np.array([fun(x=x) for x in x_list])
 
-    diff_trans, diff_rot = frame_difference(t[np.newaxis, ...], t1)
+    diff_trans, diff_rot = spatial.frame_difference(t[np.newaxis, ...], t1)
 
     if squared:
         diff_trans = np.sqrt(np.mean(np.power(diff_trans, 2), axis=1))

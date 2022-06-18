@@ -23,7 +23,7 @@ dh_bool_arm = np.array([[3, 1, 3, 3],
                         [3, 3, 3, 2],
                         [9, 9, 9, 9],                # [2, 1, 3, 2],
                         [9, 9, 9, 9]]) <= 8  # was 2 # [2, 2, 3, 2]]) <= 2
-
+dh_bool_arm = np.zeros_like(dh_bool_arm, dtype=bool)
 
 # dh_bool_arm = np.array([[3, 1, 3, 3, 0],
 #                         [3, 2, 3, 3, 0],
@@ -36,6 +36,7 @@ dh_bool_arm = np.array([[3, 1, 3, 3],
 
 dh_bool_head = np.array([[1, 1, 1, 1],
                          [1, 1, 1, 1]], dtype=bool)  # TODO Not tuned yet
+dh_bool_head = np.zeros_like(dh_bool_head, dtype=bool)
 
 # dh_bool_head = np.array([[0, 0, 0, 0, 0],
 #                          [0, 0, 0, 0, 0]], dtype=bool)  # TODO Not tuned yet
@@ -62,16 +63,6 @@ cp_bool_torso = np.array([[1, 0, 0],
 #                         [1, 1, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 1]], dtype=bool)
-cp_bool_arm = np.array([[1, 0, 1],
-                        [1, 0, 1],
-                        [1, 0, 1],
-                        [1, 0, 1],
-                        [1, 0, 1],
-                        [0, 0, 0],
-                        [0, 0, 0]], dtype=bool)
-
-cp_bool_head = np.array([[1, 0, 1],
-                         [1, 0, 1]], dtype=bool)
 # cp_bool_arm = np.array([[0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
@@ -79,9 +70,21 @@ cp_bool_head = np.array([[1, 0, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1]], dtype=bool)
+cp_bool_arm = np.array([[1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [0, 0, 0],
+                        [0, 0, 0]], dtype=bool)
+cp_bool_arm = np.zeros_like(cp_bool_arm, dtype=bool)
 
 # cp_bool_head = np.array([[1, 1, 1],
 #                          [1, 1, 1]], dtype=bool)
+cp_bool_head = np.array([[1, 0, 1],
+                         [1, 0, 1]], dtype=bool)
+cp_bool_head = np.zeros_like(cp_bool_head, dtype=bool)
+
 
 cm_bool = np.array([[1, 1, 1, 1, 1, 1],
                     [1, 1, 1, 0, 0, 0],

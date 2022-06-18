@@ -30,7 +30,7 @@ world_limits = np.array([[-2, 2],
                          [-2, 2],
                          [-0.5, 3.5]])
 
-par.size.n_waypoints = 22
+par.size.n_wp = 22
 par.size.n_dof = par.robot.n_dof
 par.world = parameter.World(n_dim=par.robot.n_dim, limits=world_limits)
 
