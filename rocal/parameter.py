@@ -11,7 +11,7 @@ class Parameter:
 
         self.x_weighting = 0
 
-        self.prior_sigma = 0.02  # 0.01  # was  0.01 for dummy
+        self.prior_sigma = 0.01  # 0.01  # was  0.01 for dummy
         self.mu_sigma = 0  #
         
         self.method = 'PyOpt - SLSQP'  # way faster

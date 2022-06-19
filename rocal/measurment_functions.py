@@ -1,8 +1,6 @@
 import numpy as np
 
-from wzk.spatial import trans_rotvec2frame, frame_difference_cost
-from wzk.geometry import capsule_capsule
-# from wzk import get_stats
+from wzk import spatial, geometry
 
 from mopla.Optimizer.cost_functions import lqql_basin
 from rocal.Vis.plotting import plot_frame_difference
@@ -16,7 +14,7 @@ def measure_frame_difference(frame_a, frame_b, weighting=None,
     if weighting is None:
         weighting = np.full((n_samples, n_frames), 1/(n_samples*n_frames))
 
-    cost_loc, cost_rot = frame_difference_cost(f_a=frame_a, f_b=frame_b)
+    cost_loc, cost_rot = spatial.frame_difference_cost(f_a=frame_a, f_b=frame_b)
 
     cost_loc = np.sum(cost_loc * weighting)
     cost_rot = np.sum(cost_rot * weighting)
@@ -35,7 +33,6 @@ def build_objective_cal_marker(q, t,
 
     def objective(x, verbose=0):
         f, cm = kin_fun(q=q, x=x)
-
 
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
@@ -101,8 +98,8 @@ def _cal_touch(f, cm, pairs, cal_rob):
     x_i = (f_i[..., np.newaxis, :, :] * cal_rob.capsules_pos[capsule_i][:, :, np.newaxis, :]).sum(axis=-1)[..., :-1]
     x_j = (f_j[..., np.newaxis, :, :] * cal_rob.capsules_pos[capsule_j][:, :, np.newaxis, :]).sum(axis=-1)[..., :-1]
 
-    xa, xb, n = capsule_capsule(line_a=x_i.transpose(1, 0, 2), line_b=x_j.transpose(1, 0, 2),
-                                radius_a=cal_rob.capsules_rad[capsule_i], radius_b=cal_rob.capsules_rad[capsule_j])
+    xa, xb, n = geometry.capsule_capsule(line_a=x_i.transpose(1, 0, 2), line_b=x_j.transpose(1, 0, 2),
+                                         radius_a=cal_rob.capsules_rad[capsule_i], radius_b=cal_rob.capsules_rad[capsule_j])
     return n
 
 
@@ -118,19 +115,40 @@ def build_objective_cal_touch(q, t,
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 
         obj = lqql_basin(x=d * 1000, a=-2.5, b=-0.5, eps=0.5)  # [mm]
-        # obj = 100*(d - t)**2
-
         obj = obj.sum()
 
         obj_prior = __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)
-        print(obj, obj_prior)
 
         obj += obj_prior
         if verbose > 0:
-            # dd = np.abs(d-t)
             return d, obj
-            # stats = get_stats(np.abs(d-t))
-            # return stats, obj
+
+        return obj
+
+    return objective
+
+
+def build_objective_cal_joints(q, t,
+                               kin_fun,
+                               cal_rob, cal_par):
+
+    q_c = q
+    q_m = t
+
+    def objective(x, verbose=0):
+
+        f, cm, dh_trq = kin_fun(q=q_c, x=x)
+        q_delta = dh_trq[:, :, 1] - cal_rob.dh[np.newaxis, :, 1]
+        q_delta = np.delete(q_delta, 3, axis=1)
+
+        d = q_m - q_c + q_delta
+        d = (d ** 2)
+        obj = d.sum() * 1000
+        obj_prior = __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)
+        obj += obj_prior
+
+        if verbose > 0:
+            return d, obj
 
         return obj
 
@@ -138,4 +156,5 @@ def build_objective_cal_touch(q, t,
 
 
 meas_fun_dict = dict(marker=build_objective_cal_marker,
-                     touch=build_objective_cal_touch)
+                     touch=build_objective_cal_touch,
+                     joints=build_objective_cal_joints)

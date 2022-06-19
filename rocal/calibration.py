@@ -10,9 +10,8 @@ from rocal.parameter import offset_nominal_parameters, create_x_unwrapper, get_x
 
 
 # Kinematic
-def get_torque_dh(f, cal_rob,
-                  dh, el, ma):
-
+def get_torque(f, cal_rob,
+               ma):
     # Finding
     #  f_dh(..., q, theta+X, ...) == f_dh(..., q, theta, ...) @ Rot_z(X)
     # # rotation around z (theta) after dh
@@ -21,14 +20,18 @@ def get_torque_dh(f, cal_rob,
     # # rotation around x (alpha) before dh
     # np.allclose(frame_from_dh2(q=4, d=3, theta=2, a=1, alpha=1+1),
     #             trans_rotvec2frame(rotvec=np.array([1, 0, 0])) @ frame_from_dh2(q=4, d=3, theta=2, a=1, alpha=1))
-
     mass, mass_pos = ma[:, -1], ma.copy()
     mass_pos[:, -1] = 1
     torque = forward.get_torques(f=f, mass=mass, mass_pos=mass_pos, mass_f_idx=cal_rob.masses_f_idx,
                                  torque_f_idx=cal_rob.joint_f_idx_dh,
                                  frame_frame_influence=cal_rob.frame_frame_influence,
                                  mode='dh')[1]
+    return torque
 
+
+def get_torque_dh(f, cal_rob,
+                  dh, el, ma):
+    torque = get_torque(f=f, cal_rob=cal_rob, ma=ma)
     return torque_compliance2dh(torque=torque, dh=dh,  el=el, include_beta=cal_rob.include_beta)
 
 
@@ -65,7 +68,7 @@ def kinematic(cal_rob,
         dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, el=el, ma=ma)
         f = cal_rob.get_frames_dh(q=q, dh=dh_trq)
 
-    return f, cm
+    return f, cm, dh_trq
 
 
 def create_wrapper_kinematic(cal_rob, x_wrapper=None,

@@ -1,12 +1,10 @@
 import numpy as np
 
-from wzk.spatial import invert, frame2trans_rotvec, frame_difference
-from wzk.math2 import numeric_derivative
-from wzk.printing import print_progress
+from wzk import spatial, math2, printing
 
-from rocal.calibration import minimize_slsqp
+from rocal.calibration import pyOpt2
 from rocal.measurment_functions import build_objective_compensation
-from rocal.Plots.plotting import print_frame_difference
+from rocal.Vis.plotting import print_frame_difference
 
 
 def get_corrected_q_opt_wrapper(kin_fun, kin_fun_n=None,
@@ -36,12 +34,12 @@ def get_corrected_q_opt(q_list, f_list,
 
     for i, (q, f) in enumerate(zip(q_list, f_list)):
         if verbose > 1:
-            print_progress(i, len(q_list))
+            printing.print_progress(i, len(q_list))
 
         obj = build_objective_compensation(frame=f[np.newaxis, :, :, :], kin_fun=kin_fun,
                                            q0=q[np.newaxis, :], q_active_bool=q_active_bool,
                                            x_weighting=x_weighting, f_weighting=f_weighting)
-        q_res = minimize_slsqp(fun=obj, x0=np.zeros(q_active_bool.sum()), options=options, verbose=verbose-1)
+        q_res = pyOpt2.minimize_slsqp(fun=obj, x0=np.zeros(q_active_bool.sum()), options=options, verbose=verbose-1)
 
         q_list_new[i, q_active_bool] += q_res
 
@@ -71,22 +69,22 @@ def get_corrected_q_lin(q, f, kin_fun,
 
     def __f2flat(_f):
         n_samples, n_frames, _, _ = _f.shape
-        return np.concatenate(frame2trans_rotvec(_f), axis=-1).reshape((n_samples, n_frames * 6))
+        return np.concatenate(spatial.frame2trans_rotvec(_f), axis=-1).reshape((n_samples, n_frames * 6))
 
     def __j2flat(j):
         n_samples, n_frames, _, _, n_dof = j.shape
-        return np.concatenate(frame2trans_rotvec(j.transpose(0, 4, 1, 2, 3)), axis=-1
+        return np.concatenate(spatial.frame2trans_rotvec(j.transpose(0, 4, 1, 2, 3)), axis=-1
                               ).reshape((n_samples, n_dof, n_frames * 6)).transpose(0, 2, 1)
 
     def __diff_frame(a, b):
         # finite differences: eps can only be used in the complete representation, not in 4x4 -> apply later
-        return (invert(a) @ b) * eps_fd
+        return (spatial.invert(a) @ b) * eps_fd
 
     def solve_lin(qc, fn):
-        dfc_dq = 1/eps_fd * __j2flat(numeric_derivative(fun=kin_fun, x=qc, diff=__diff_frame, eps=eps_fd, mode=mode_fd))
+        dfc_dq = 1/eps_fd * __j2flat(math2.numeric_derivative(fun=kin_fun, x=qc, diff=__diff_frame, eps=eps_fd, mode=mode_fd))
         dq_dfc = np.linalg.pinv(dfc_dq)
 
-        df = -__f2flat(invert(kin_fun(qc)) @ fn)[:, :, np.newaxis]
+        df = -__f2flat(spatial.invert(kin_fun(qc)) @ fn)[:, :, np.newaxis]
         dq = (dq_dfc @ df)[..., 0]
 
         qc += dq
@@ -115,14 +113,31 @@ def get_corrected_q_lin(q, f, kin_fun,
 
 
 if __name__ == '__main__':
-    import numpy as np
 
-    from wzk.spatial import frame_difference
-    from rocal.calibration import create_wrapper_kinematic
-    from rocal.Robots.Justin19 import Justin19Cal
-    from rocal.definitions import ICHR20_CALIBRATION
+    # from rocal.calibration import create_wrapper_kinematic
+    # from rocal.Robots.Justin19 import Justin19Cal
+    # from rocal.definitions import ICHR20_CALIBRATION
+    #
+    # cal_rob = Justin19Cal(dkmc='ff0c', use_imu=True, el_loop=1, add_nominal_offsets=False)
+    # x, _ = np.load(ICHR20_CALIBRATION + '/final_all.npy', allow_pickle=True)
+    # kinematic = create_wrapper_kinematic(cal_rob=cal_rob, x=x)
 
-    cal_rob = Justin19Cal(dkmc='ff0c', use_imu=True, el_loop=1, add_nominal_offsets=False)
-    x, _ = np.load(ICHR20_CALIBRATION + '/final_all.npy', allow_pickle=True)
+    from rokin.Robots import Justin19
+    from mopla.Parameter import get_par_justin19
+    from mopla.main import ik
+    par, gd, _ = get_par_justin19()
+    q = par.robot.sample_q(1)
 
-    kinematic = create_wrapper_kinematic(cal_rob=cal_rob, x=x)
+    par.robot.switch2calibrated()
+    f = par.robot.get_frames(q)[..., 13, :, :]
+    j2 = par.robot.get_frames_jacs(q)[1]
+    par.robot.switch2nominal()
+    j = par.robot.get_frames_jacs(q)[1]
+    print('Maximal jac difference: ', np.rad2deg(np.max(np.abs(j2 - j).max())))
+
+    par.xc.frame = f
+    par.xc.f_idx = [13]
+    q2 = ik(par=par, q=q, n=5, clip=2)
+    f2 = par.robot.get_frames(q2)[..., 13, :, :]
+    print('Maximal joint difference: ', np.rad2deg(np.max(np.abs(q2 - q).max())))
+    print_frame_difference(f1=f, f2=f2, title='Primitive Compensation')
