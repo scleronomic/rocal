@@ -5,7 +5,7 @@ from rocal.calibration import calibrate
 from rocal.Measurements.io2 import get_q
 from rocal.Robots.Justin19 import Justin19Cal
 from rocal.Vis.plotting import print_stats2
-from rocal.parameter import Parameter
+from rocal.parameter import Parameter, unwrap_x
 
 from rocal.definitions import ICHR20_CALIBRATION
 
@@ -43,12 +43,11 @@ if __name__ == '__main__':
     # x, stats = calibrate(q_cal=q0_cal, t_cal=t_cal, q_test=q0_test, t_test=t_test, verbose=1,
     #                      cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
     # #
-    # print_stats2(stats)
 
-    from rocal.parameter import unwrap_x
     x, stats = calibrate(q_cal=q0_cal, t_cal=q_cal, q_test=q0_test, t_test=q_cal, verbose=1,
                          obj_fun='joints',
                          cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
+    print_stats2(stats)
     x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
     # print('Torso: ')
     # print(x['dh'][:4, 1])

@@ -10,6 +10,12 @@ dh_bool_torso = np.array([[2, 9, 3, 3],   # 8 from redundancy analysis, 9 from r
                           [3, 2, 2, 2],
                           [8, 2, 3, 1],
                           [8, 2, 2, 2]]) < 8
+
+dh_bool_torso = np.array([[11, 9, 11, 11],   # NEW 11 | 8 from redundancy analysis, 9 from redundancy with f_world_robot
+                          [3, 2, 2, 2],
+                          [8, 2, 3, 1],
+                          [8, 2, 2, 2]]) < 8
+
 dh_bool_torso = np.array([[0, 0, 0, 0],   # 8 from redundancy analysis, 9 from redundancy with f_world_robot
                           [0, 1, 0, 0],
                           [0, 1, 0, 0],
@@ -47,22 +53,22 @@ dh_bool_head = np.zeros_like(dh_bool_head, dtype=bool)
 #                           [4, 5, 5],
 #                           [9, 5, 4]]) <= 4
 
-cp_bool_torso = np.array([[1, 0, 0],
-                          [1, 0, 1],
-                          [1, 0, 1],
-                          [0, 0, 1]], dtype=bool)
+# cp_bool_torso = np.array([[0, 0, 0],
+#                           [1, 0, 1],
+#                           [1, 0, 1],
+#                           [0, 0, 1]], dtype=bool)
 cp_bool_torso = np.array([[0, 0, 0],
                           [0, 0, 1],
                           [0, 0, 1],
                           [0, 0, 1]], dtype=bool)
-
-cp_bool_arm = np.array([[1, 1, 1],
-                        [0, 1, 1],
-                        [1, 0, 1],
-                        [1, 1, 1],
-                        [1, 1, 1],
-                        [0, 0, 1],
-                        [0, 0, 1]], dtype=bool)
+#
+# cp_bool_arm = np.array([[1, 1, 1],
+#                         [0, 1, 1],
+#                         [1, 0, 1],
+#                         [1, 1, 1],
+#                         [1, 1, 1],
+#                         [0, 0, 1],
+#                         [0, 0, 1]], dtype=bool)
 # cp_bool_arm = np.array([[0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
@@ -70,13 +76,13 @@ cp_bool_arm = np.array([[1, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1]], dtype=bool)
-# cp_bool_arm = np.array([[1, 0, 1],
-#                         [1, 0, 1],
-#                         [1, 0, 1],
-#                         [1, 0, 1],
-#                         [1, 0, 1],
-#                         [0, 0, 0],
-#                         [0, 0, 0]], dtype=bool)
+cp_bool_arm = np.array([[1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [1, 0, 1],
+                        [0, 0, 0],
+                        [0, 0, 0]], dtype=bool)
 cp_bool_arm = np.array([[0, 0, 1],
                         [0, 0, 1],
                         [0, 0, 1],
