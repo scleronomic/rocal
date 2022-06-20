@@ -32,7 +32,8 @@ def build_objective_cal_marker(q, t,
                                cal_rob, cal_par):
 
     def objective(x, verbose=0):
-        f, cm = kin_fun(q=q, x=x)
+
+        f, cm, dh_torque = kin_fun(q=q, x=x)
 
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
@@ -41,9 +42,24 @@ def build_objective_cal_marker(q, t,
 
         if cal_par.x_weighting != 0:
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
-
         if verbose > 0:
-            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)
+            # dd = (t2[:, 0, :-1, -1] - t[:, 0, :-1, -1])
+            # from wzk.mpl import new_fig
+            # fig, ax = new_fig()
+            # ax.hist(dd[:, 0], bins=20, color='red')
+            # ax.set_xlabel('x : nominal - measured')
+            #
+            # fig, ax = new_fig()
+            # ax.hist(dd[:, 1], bins=20, color='green')
+            # ax.set_xlabel('y : nominal - measured')
+            #
+            # fig, ax = new_fig()
+            # ax.hist(dd[:, 2], bins=20, color='blue')
+            # ax.set_xlabel('z : nominal - measured')
+            #
+            #
+            # print('dd', dd.mean())
+            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
             return stats, obj
 
         return obj
@@ -141,7 +157,7 @@ def build_objective_cal_joints(q, t,
         q_delta = dh_trq[:, :, 1] - cal_rob.dh[np.newaxis, :, 1]
         q_delta = np.delete(q_delta, 3, axis=1)
 
-        d = q_m - q_c + q_delta
+        d = q_m - (q_c + q_delta)
         d = (d ** 2)
         obj = d.sum() * 1000
         obj_prior = __prior_objective(x=x, prior_mu=np.zeros_like(x), prior_sigma=cal_par.prior_sigma)

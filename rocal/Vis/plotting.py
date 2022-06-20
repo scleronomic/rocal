@@ -40,8 +40,8 @@ def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
             pos, rot = frame2trans_rotvec(f=f0[:, i, :, :])
             pos2, rot2 = frame2trans_rotvec(f=f1[:, i, :, :])
 
-            scatter_measurements_3d(x0=pos, x1=pos2, title='Positions - ' + fname)
-            scatter_measurements_3d(x0=rot, x1=rot2, title='Rotations - ' + fname)
+            scatter_measurements_3d(x0=pos, x1=pos2, title='Positions - ' + fname,)
+            scatter_measurements_3d(x0=rot, x1=rot2, title='Rotations - ' + fname,)
 
         if verbose > 4:
             n = 74
@@ -105,8 +105,8 @@ def scatter_measurements_3d(x0, x1, title):
     fig, ax_2d = new_fig(n_rows=1, n_cols=3, title=title, width=10)
     fig, ax_2d_diff = new_fig(n_rows=1, n_cols=3, title=title, width=10, aspect=1)
 
-    points_3d_4views(x=x0, ax_3d=ax_3d, ax_2d=ax_2d, color='b', marker='o', s=3, label='measured')
-    points_3d_4views(x=x1, ax_3d=ax_3d, ax_2d=ax_2d, color='r', marker='o', s=3, label='calibrated')
+    points_3d_4views(x=x0, ax_3d=ax_3d, ax_2d=ax_2d, color='b', marker='o', markersize=3, label='measured')
+    points_3d_4views(x=x1, ax_3d=ax_3d, ax_2d=ax_2d, color='r', marker='o', markersize=3, label='calibrated')
 
     diff = x0 - x1
     max_diff = np.abs(diff).max()
@@ -119,11 +119,11 @@ def scatter_measurements_3d(x0, x1, title):
 
 def points_3d_4views(x, ax_3d=None, ax_2d=None, limits=None, **kwargs):
 
-    if ax_3d is None:
-        fig, ax_3d = new_fig(n_dim=3)
-    ax_3d.scatter(*x.T, **kwargs)
+    # if ax_3d is None:
+    #     fig, ax_3d = new_fig(n_dim=3)
+    # ax_3d.scatter(*x.T, **kwargs)
 
-    plot_projections_2d(x=x, ax=ax_2d, dim_labels='xyz', limits=limits, **kwargs)
+    plot_projections_2d(x=x, ax=ax_2d, dim_labels='xyz', limits=limits, ls='', **kwargs)
 
 
 def test_points_4views():
