@@ -3,7 +3,7 @@ from wzk.mpl import (new_fig, save_fig, turn_ticks_off, get_pip, set_style,
                      geometry, patches, golden_ratio,
                      FancyArrowX2, FancyBbox)
 
-from mopla.Visualization import humanoid_robot_2d
+from rokin.Vis import humanoid_robot_2d
 from rocal.definitions import ICHR20_CALIBRATION_FIGS
 
 # INFO for 2columns look at commit "Calibration Sketch 2 columns"  / 4ff8c36a

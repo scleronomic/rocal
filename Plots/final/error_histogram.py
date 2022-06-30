@@ -15,9 +15,9 @@ from matplotlib.patches import Rectangle
 def print_new_cal():
     x2, _ = np.load(ICHR20_CALIBRATION + '/final_all.npy', allow_pickle=True)
     '/Users/jote/Documents/DLR/Paper/ICHR20_Calibration/Data'
-    x2['dh']
-    x2['cp'] / 100
-    x2['ma']
+    print(x2['dh'])
+    print(x2['cp'] / 100)
+    print(x2['ma'])
 
 
 def add_margin(ax, pad, **kwargs):

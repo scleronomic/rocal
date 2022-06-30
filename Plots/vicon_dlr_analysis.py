@@ -2,20 +2,16 @@ import numpy as np
 from itertools import combinations
 
 from wzk.mpl import new_fig, save_fig, remove_duplicate_labels
-from wzk.spatial import invert, Rotation
+from wzk import spatial, geometry
 
 from rokin.forward import get_frames_x
 from rokin.Robots import Justin19
 
 from rocal.Measurements import io2
-from rocal.Plots.plotting import scatter_measurements_3d, plot_projections_2d
+from rocal.Vis.plotting import scatter_measurements_3d, plot_projections_2d
 from rocal.definitions import ICHR20_CALIBRATION
 
-from rocal.use import load_calibrated_kinematic
-
-
 robot = Justin19()
-kinematic2 = load_calibrated_kinematic()
 
 # f_base_imu = np.array([[0, 0, -1, -0.25],
 #                        [0, -1, 0, 0.007],
@@ -45,15 +41,17 @@ def get_date_img(date_list):
 
 # Cal
 
-def poses20_over_time():
+def poses20_over_time(date,
+                      norm_lr, norm0_lr, norm0b_lr):
+
     from matplotlib.ticker import MultipleLocator, MaxNLocator
-    # directory = ICHR20_CALIBRATION + '/TorsoRightLeft/0/m20/'
+    directory = ICHR20_CALIBRATION + '/TorsoRightLeft/0/m20/'
 
     n = 20
 
-    p = 1000*(norm_lr - norm_lr_mean)
-    p0 = 1000*(norm0_lr - norm0_lr_mean)
-    p0b = 1000*(norm0b_lr - norm0b_lr_mean)
+    p = 1000*(norm_lr - norm_lr.mean(axis=0))
+    p0 = 1000*(norm0_lr - norm0_lr.mean(axis=0))
+    p0b = 1000*(norm0b_lr - norm0b_lr.mean(axis=0))
 
     date_img = get_date_img(date) + 1
 
@@ -82,26 +80,22 @@ def poses20_over_time():
         if i == 0:
             ax[0].legend()
 
-    save_fig(fig=fig, file='vicon_calibration_over_time', formats='pdf')
+    save_fig(fig=fig, file=f'{directory}/vicon_calibration_over_time', formats='pdf')
     return
 
 
 def plot_measurements():
 
-    # directory = DLR_USERSTORE_PAPER_2020_CALIB + '/Measurements/0_3_5.0/'
-    # directory = ICHR20_CALIBRATION + '/Measurements/0_20_4.0/'
     directory = ICHR20_CALIBRATION + '/TorsoRightLeft/0/m20/'
 
-    n = 20
     q, t, imu, date = io2.load_multiple_measurements(directory=directory, target_order=[2, 1])
 
-    # q0 = np.load(directory + f'../ordered_poses_{n}.npy')[1:-1, 0]
     t = t[:, :-1]
     q = q[:, :-1]
     imu = imu[:, :-1]
 
     t0 = robot.get_frames(q=q)[:, :, [13, 22], :, :]
-    t0b = kinematic2(q=q.reshape(-1, 19)).reshape(t.shape)
+    t0b = robot.get_frames_cal(q=q.reshape(-1, 19))
     imu = imu[-1]
 
     imu_normalized = imu / np.linalg.norm(imu, axis=-1, keepdims=True)
@@ -111,26 +105,25 @@ def plot_measurements():
     imu_cos = np.arccos((imu_mean_normalized[np.newaxis, ...] * imu_normalized).sum(axis=-1)).mean(axis=-1)
 
     print(np.rad2deg(np.pi-np.arccos(imu_normalized[:, 0])).max())
-    # All the test sets have values < 1 deg (seems a little bit to small. Did we set up the robot so precise,
-    # shock-locks)
+    # All the test sets have values < 1 deg (seems a little to small. Did we set up the robot so precise, shock-locks?)
 
     print(np.round(1000*imu_cos, decimals=5), "mm")
 
     f_imu = np.zeros_like(t)
     f_imu[..., -1, -1] = 1
     f_imu[..., :-1, :-1] = np.array(
-        [[Rotation.align_vectors(a=np.array([[-1, 0, 0]]), b=imu_normalized[i:i + 1, j])[0].as_matrix()
+        [[spatial.Rotation.align_vectors(a=np.array([[-1, 0, 0]]), b=imu_normalized[i:i + 1, j])[0].as_matrix()
           for j in range(imu.shape[1])] for i in range(imu.shape[0])])[:, :, np.newaxis, :, :]
 
     a = np.zeros_like(imu_normalized)
     a[..., 0] = -1
     f_imu2 = np.zeros_like(t)
     f_imu2[..., -1, -1] = 1
-    f_imu2[..., :-1, :-1] = rot(a=a, b=imu_normalized)[:, :, np.newaxis, :, :]
+    f_imu2[..., :-1, :-1] = geometry.rotation_between_vectors(a=a, b=imu_normalized)[:, :, np.newaxis, :, :]
 
-    t = invert(f_imu2) @ invert(f_base_imu) @ t
-    t0 = f_imu2 @ invert(f_base_imu) @ t0
-    t = f_imu @ invert(f_base_imu) @ t
+    t = spatial.invert(f_imu2) @ spatial.invert(f_base_imu) @ t
+    t0 = f_imu2 @ spatial.invert(f_base_imu) @ t0
+    t = f_imu @ spatial.invert(f_base_imu) @ t
 
     tx = t[:, :, :, :3, -1]
     t0x = t0[:, :, :, :3, -1]
@@ -159,10 +152,8 @@ def plot_measurements():
     norm0_lr = norm0_lr[i]
     norm0b_lr = norm0b_lr[i]
     date = date[i]
-
-    norm_lr_mean = norm_lr.mean(axis=0)
-    norm0_lr_mean = norm0_lr.mean(axis=0)
-    norm0b_lr_mean = norm0b_lr.mean(axis=0)
+    poses20_over_time(date=date,
+                      norm_lr=norm_lr, norm0_lr=norm0_lr, norm0b_lr=norm0b_lr)
 
     diff_mat_norm_lr = (norm_lr[:, np.newaxis] - norm_lr[np.newaxis, :]).mean((-1))
     diff_mat_norm0_lr = (norm0_lr[:, np.newaxis] - norm0_lr[np.newaxis, :]).mean((-1))
@@ -175,8 +166,8 @@ def plot_measurements():
     print("Norm Left - Right")
     print(np.round(1000 * np.abs((norm_lr.mean(axis=0, keepdims=True) - norm_lr)).mean(axis=-1), 4), "mm")
 
-    frame_lr = invert(t[:, :, 1]) @ t[:, :, 0]
-    frame_rl = invert(t[:, :, 0]) @ t[:, :, 1]
+    frame_lr = spatial.invert(t[:, :, 1]) @ t[:, :, 0]
+    frame_rl = spatial.invert(t[:, :, 0]) @ t[:, :, 1]
     x_rl = frame_rl[:, :, :3, -1]
     x_lr = frame_lr[:, :, :3, -1]
     diff_mat_rl = np.linalg.norm(x_rl[:, np.newaxis] - x_rl[np.newaxis, :], axis=-1).mean((-1))
@@ -222,7 +213,7 @@ def plot_measurements():
 
     mean = tx[:, :, 1, :].mean(axis=0)
     mean = t0x[:, :, 1, :].mean(axis=0)
-
+    dim_labels = 'xyz'
     # for i, c in enumerate(np.arange(len(tx))):
     for i, c in enumerate(combinations(np.arange(len(tx)), 2)):
 
@@ -275,7 +266,7 @@ def test_world_frame():
 
 
 def joint_comparison(q, q0):
-    # FINDING only torso 0 is this bad, can easily be filtered out if range of motion is limit [-120, +120]
+    # FINDING only torso 0 is this bad, can easily be filtered out if range of motion is limited to [-120, +120]
 
     dq = np.abs(q - q0)
 
@@ -334,8 +325,8 @@ def __plot_tcp_nullspace(directory, n, cal, i_rmv_pose=None, j_rmv_measurement=N
 
     t_0m = robot.get_frames(q=q)[:, :, [13, 22], :, :]
     t_0c = robot.get_frames(q=q_c)[:, :, [13, 22], :, :].reshape((t.shape[1:]))[np.newaxis, ...]
-    t_1m = kinematic2(q=q.reshape(-1, 19)).reshape(t.shape)
-    t_1c = kinematic2(q=q_c.reshape(-1, 19)).reshape((t.shape[1:]))[np.newaxis, ...]
+    t_1m = robot.get_frames_cal(q=q.reshape(-1, 19)).reshape(t.shape)
+    t_1c = robot.get_frames_cal(q=q_c.reshape(-1, 19)).reshape((t.shape[1:]))[np.newaxis, ...]
 
     def t2tx(*t_list):
         return tuple(_t[:, :, 0, :3, -1] for _t in t_list)
@@ -421,12 +412,7 @@ def plot_tcps_nullspace():
 
     n = 20
     cal = ''
-    # directory_ = DLR_USERSTORE_PAPER_2020_CALIB + f'/Measurements/TCP_right_{cal}{n}/'
     directory = ICHR20_CALIBRATION + f'/Measurements/TCP_right3_{cal}{n}/'
-    # directory = DLR_USERSTORE_PAPER_2020_CALIB + f'/Measurements/TCP_right03_{cal}{n}/'
-    # directory = DLR_USERSTORE_PAPER_2020_CALIB + f'/Measurements/TCP_right_left3_{cal}{n}/'
-    # # right3_5
-    # right3_20
     i_rmv_pose = [2]
     j_rmv_measurement = [0, 1, 2, 3, 4, 5, 6]
 

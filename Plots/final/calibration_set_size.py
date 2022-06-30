@@ -44,16 +44,12 @@ def main():
     ax.fill_between(x=n_list, y1=stats_std0[:, 1], y2=stats_std1[:, 1], alpha=0.2, color='c')
 
     ax.set_xticks(np.arange(10, 250, 10), minor=True)
-    ax.set_ylabel('TCP Error [mm]')
     ax.legend(loc='lower right')
     ax.grid()
     ax.set_xlim(1, 250)
-
-    ax.set_xlabel('Size of Calibration Set')
-
     ax.set_ylim(1e0, 1e2)
-
-    # remove_ticks(ax[1], v=1e2, axis='y')
+    ax.set_xlabel('Size of Calibration Set')
+    ax.set_ylabel('TCP Error [mm]')
 
     save_fig(file=ICHR20_CALIBRATION_FIGS + '/Final/size_of_calibration_set', formats='pdf', bbox=None)
 

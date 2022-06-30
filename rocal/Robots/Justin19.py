@@ -104,19 +104,6 @@ cm_bool = np.array([[1, 1, 1, 1, 1, 1],
                     [1, 1, 1, 0, 0, 0]], dtype=bool)
 
 # Target Frames
-# f_world_base0 = np.array([[1, 0, 0, 1.4],  # Meas 1, only right, dummy
-#                           [0, 1, 0, 0.9],
-#                           [0, 0, 1, 0.08],
-#                           [0, 0, 0, 1]])
-# f_right_target0 = np.array([[0, 0, -1, -0.1],  # Meas 1, only right
-#                             [1, 0, 0, -0.03],
-#                             [0, -1, 0, 0.05],
-#                             [0, 0, 0, 1]])
-# f_world_base0 = np.array([[1, 0, 0, 0.90],  # Meas 2, left & right, better centered with respect ot the cameras
-#                           [0, 1, 0, 1.90],
-#                           [0, 0, 1, 0.07],
-#                           [0, 0, 0, 1]])
-
 f_world_base0 = np.array([[0,  -1,  0, -2.55],  # Meas 3
                           [+1,  0,  0, +2.0],
                           [0,   0, +1, +0.1],
