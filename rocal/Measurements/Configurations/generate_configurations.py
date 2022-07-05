@@ -280,7 +280,7 @@ def rejection_sampling_pole(n):
     q = reject_other_marker(q_=q, marker='kinect_right')
     q = reject_other_marker(q_=q, marker='kinect_left')
     q = q[:n]
-    print('Number of samples', q.shape[0])ssss
+    print('Number of samples', q.shape[0])
     np.save(f"{ICHR22_AUTOCALIBRATION}/q{n}_random_{gen.name}.npy", q)
     return q
 
