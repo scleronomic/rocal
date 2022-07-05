@@ -28,7 +28,7 @@ def ardx2dict(a):
         else:
             try:
                 d[b] = ardx.numpy_view(bb)
-            except TypeError:
+            except (TypeError, KeyError):
                 d[b] = ardx2dict(bb)
 
     return d
