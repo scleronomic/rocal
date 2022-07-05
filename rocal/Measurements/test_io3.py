@@ -29,10 +29,13 @@ def ardx2dict(a):
             try:
                 d[b] = ardx.numpy_view(bb)
             except TypeError:
-                return d, ardx2dict(bb)
+                d[b] = ardx2dict(bb)
 
     return d
 
 
 print(ardx2dict(a=rgb[0]))
+print(ardx2dict(a=marker[0]))
+print(ardx2dict(a=torso[0]))
+
 
