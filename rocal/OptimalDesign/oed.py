@@ -233,15 +233,16 @@ def configuration_histogram(idx_list, label_list, color_list, title='', **kwargs
     offset = 0.0005
 
     offset = [offset*n, offset]
-    fig, ax = new_fig(scale=2, title='Configuration Histogram' + title)
+    fig, ax = new_fig(title='Configuration Histogram' + title)
     ax.set_xlim(0, n-1)
+    ax.set_ylim(0, 500/n)
     ax.set_xlabel('Configuration Index')
-    ax.set_ylabel('Count of Configuration')
+    ax.set_ylabel('Percentage of Configuration in Set')
 
     for i, (idx, label, color) in enumerate(zip(idx_list, label_list, color_list)):
-        ax.step(offset[0]*i + np.arange(n),
-                offset[1]*i + np.bincount(idx.ravel(), minlength=n) / len(idx),
-                where='mid', color=color, label=label, **kwargs)
+        y = offset[1]*i + np.bincount(idx.ravel(), minlength=n) / len(idx) * 100
+        x = offset[0]*i + np.arange(len(y))
+        ax.step(x, y, where='mid', color=color, label=label, **kwargs)
 
     ax.legend(loc='upper right')
     return ax

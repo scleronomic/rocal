@@ -171,6 +171,39 @@ def build_objective_cal_joints(q, t,
     return objective
 
 
+def build_objective_cal_marker_image(q, t,
+                                     kin_fun,
+                                     cal_rob, cal_par):
+    camera = None
+    marker_right = None
+    marker_left = None
+    marker_pole = None
+
+    def objective(x, verbose=0):
+
+        f, cm, dh_torque = kin_fun(q=q, x=x)
+
+        cm = [f_robot_pole, f_robot_right, f_robot_left, f_robot_camera]
+
+        t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
+
+        # TODO not every measurement has every n
+
+        obj = measure_pixel_difference()
+
+        if cal_par.x_weighting != 0:
+            obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
+
+        if verbose > 0:
+            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
+            return stats, obj
+
+        return obj
+
+    return objective
+
+
 meas_fun_dict = dict(marker=build_objective_cal_marker,
+                     marker_image=build_objective_cal_marker_image,
                      touch=build_objective_cal_touch,
                      joints=build_objective_cal_joints)

@@ -10,37 +10,29 @@ from rocal.OptimalDesign.oed import (task_a_optimality_wrapper, d_optimality_wra
                                      detmax, configuration_histogram)
 
 
-# Finding The optimal Task-A Criterion is all values = 1 -> maximal, but if all points are the same
-# the result is most likely false, because the redundancies will not be found
-# -> the criterion is good but in addition the values should be far apart / different
-#
-
-# The measurement noise really influences the performance,
-# No consistent result for the usefulness of a-optimality emerges
-# because this noise makes everything gaussian
-
-# Measuring at positions where the cameras work well and have little noise is
-# a good thing, because the optimal calibration poses are those with only little
-# measurement error
-# BUT this seems only to be partly true, as for the Nonlinear model the results look
-# not so consistent again
-
-# One Idea is to use larger models with more measurement points because than
-# the influence of 'measurement luck should be reduced'
-
-# over 1000 runs of the linear model the ota greedy design was on average (median) 0.9 times the median
-# of 1000 sample calibration designs -> is this worth it?
-# but when comparing against the worst ota nad an average ota calibration set
-# the optimum performs far better on average. -> make this 3 plots
-# was made just with different noise -> test with completely random setting
+# Finding
+#   A) The optimal Task-A Criterion is all values = 1 -> maximal, but if all points are the same
+#   the result is most likely false, because the redundancies will not be found
+#   -> the criterion is good but in addition the values should be far apart / different
+#   B) The measurement noise really influences the performance,
+#   No consistent result for the usefulness of a-optimality emerges
+#   because this noise makes everything gaussian
+#   C) Measuring at positions where the cameras work well and have little noise is
+#   a good thing, because the optimal calibration poses are those with only little
+#   measurement error
+#   BUT this seems only to be partly true, as for the Nonlinear model the results look
+#   not so consistent again
+#   D) One Idea is to use larger models with more measurement points because than
+#   the influence of 'measurement luck should be reduced'
+#   E) over 1000 runs of the linear model the ota greedy design was on average (median) 0.9 times the median
+#   of 1000 sample calibration designs -> is this worth it?
+#   but when comparing against the worst ota and an average ota calibration set
+#   the optimum performs far better on average. -> make this 3 plots
+#   was made just with different noise -> test with completely random setting
+#   F) In general, the relative D-efficiency of two designs is defined as the ratio of the two determinants
+#   raised to the power 1/p, where p is the number of unknown model parameters.
 
 
-# In general, the relative D-efficiency of two designs is defined as the ratio of the two determinants
-# raised to the power 1/p, where p is the number of unknown model parameters.
-
-#
-# Drive Justin a few times to the same positions to get a feeling for the measurement error
-# measurement noise
 class Model:
     def __init__(self, nx, ny):
         self.nx = nx
@@ -198,7 +190,7 @@ def main():
     prior_sigma = 0.01
 
     n_test = 1000
-    n_cal = 4
+    n_cal = 6
     n_calset = 1000
     n_optval = 10000
 
@@ -208,16 +200,9 @@ def main():
     max_parameter_error = 0.1
     # np.random.seed(0)
     x0 = np.zeros(ny * nx)
-    # x0 = np.zeros(nx)
-    # aa = []
-    # bb = []
-    # cc = []
 
-    # nnn = 30
-    # for o in range(nnn):
     model = Linear(nx=nx, ny=ny)
 
-    # np.random.seed(0)
     model.initialize_parameters(max_parameter_error=max_parameter_error)  # mode='random')
 
     x_test, y_test, noise_test = model.create_dummy_data(measurement_noise=measurement_noise, n=n_test)
@@ -236,13 +221,13 @@ def main():
     # y_calset[-len(y_calset2):] = y_calset2
     # noise_calset[-len(noise_calset2):] = noise_calset2
 
-    # Calculate Optimality Criterions
+    # Calculate Optimality Criteria
     jac_calset = numeric_derivative(fun=model.forward2_wrapper(x=x_calset), x=x0)
     jac_optval = numeric_derivative(fun=model.forward2_wrapper(x=x_optval), x=x0)
 
     a_task_opt_fun = task_a_optimality_wrapper(jac_calset=jac_calset, jac_test=jac_optval, prior_sigma=prior_sigma)
     d_opt_fun = d_optimality_wrapper(jac=jac_calset)
-    # idx_greedy_ota, greedy_ota = greedy(n=n_calset, k=n_cal, fun=a_task_opt_fun)
+    idx_greedy_ota, greedy_ota = greedy(n=n_calset, k=n_cal, fun=a_task_opt_fun)
     idx_greedy_nota, greedy_nota = greedy(n=n_calset, k=n_cal, fun=lambda _idx: -a_task_opt_fun(_idx))
     idx_greedy_od, greedy_od = greedy(n=n_calset, k=n_cal, fun=d_opt_fun)
     idx_greedy_nod, greedy_nod = greedy(n=n_calset, k=n_cal, fun=lambda _idx: -d_opt_fun(_idx))
@@ -250,7 +235,6 @@ def main():
     idx_det, det_ota = change_tuple_order([detmax(fun=a_task_opt_fun, n=n_calset, k=n_cal, excursion=2, max_loop=2)
                                            for _ in range(1000)])
     idx_greedy_ota = idx_det[np.argmin(det_ota)]
-    # # idx_greedy_ota = idx_det
     idx_det = np.unique(idx_det, axis=0)
 
     idx = random_subset(n=n_calset, k=n_cal, m=n)
@@ -275,11 +259,6 @@ def main():
 
     mse_test_noise = np.array(mse_test_noise)
 
-    fig, ax = new_fig()
-
-    ax.plot(ota[:n], mse_test_noise.mean(axis=0)[:n], color='r', ls='', marker='o')
-    ax.plot(ota[n:n+len(idx_det)], mse_test_noise.mean(axis=0)[n:n+len(idx_det)], color='b', ls='', marker='o')
-
     true_best_with_noises(err_r=mse_test_noise[:, :n], obj_r=ota[:n],
                           err_b=mse_test_noise[:, n:n+len(idx_det)], obj_b=ota[n:n+len(idx_det)])
 
@@ -293,37 +272,36 @@ def main():
                                                             np.abs(noise_calset[idx[i]]).mean()))
 
     # return relative_perf, perc_ota_greedy_min, mse_parameter[i], np.abs(noise_calset[idx[i]]).mean(), rel_med
-    correlation_plot(a=mse_parameter, b=mse_test, name_a='MSE Parameter', name_b='MSE Prediction',
-                     hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
-                     lower_perc=0.1, upper_perc=99.9)
+    ax = correlation_plot(a=mse_parameter, b=mse_test, name_a='MSE Parameter', name_b='MSE Prediction',
+                          colors=['g', 'm'], lower_perc=0.1, upper_perc=99.9)
 
     ax = correlation_plot(a=np.abs(noise_calset[idx]).mean(axis=(-1, -2)), b=mse_test,
                           name_a='Noise', name_b='MSE Prediction')
     save_fig(fig=ax.get_figure(), save=save)
     ax, percs = hist_vlines(x=mse_test, bins=100, name='MSE Prediction',
-                            hl_idx=[-4, -3, -2, -1], hl_color=['g', 'r', 'matrix', 'y'],
+                            hl_idx=[-4, -3, -2, -1], hl_color=['g', 'r', 'm', 'y'],
                             hl_name=['Greedy A-Min', 'Greedy A-Max', 'Greedy D-Min', 'Greedy D-Max'],
                             lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     # perc_ota_greedy_min, perc_nota_greedy_max, perc_od_greedy_min, perc_nod_greedy_max = percs
     ax, percs = hist_vlines(x=mse_parameter, bins=100, name='MSE Parameter',
-                            hl_idx=[-4, -3, -2, -1], hl_color=['g', 'r', 'matrix', 'y'],
+                            hl_idx=[-4, -3, -2, -1], hl_color=['g', 'r', 'm', 'y'],
                             hl_name=['Greedy A-Min', 'Greedy A-Max', 'Greedy D-Min', 'Greedy D-Max'],
                             lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     ax = correlation_plot(a=ota, b=mse_test, name_a='Task A-Optimality', name_b='MSE Prediction',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     ax = correlation_plot(a=ota, b=mse_parameter, name_a='Task A-Optimality', name_b='MSE Parameter',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
-    configuration_histogram(idx_list=[idx[:n], idx_det, idx[np.argsort(mse_test)[:1000]]],
+    configuration_histogram(idx_list=[idx[:n], idx_det, idx[np.argsort(mse_test)[:n]]],
                             label_list=['random', 'detmax', 'best'],
                             color_list=['k', 'b', 'g'])
 
@@ -332,22 +310,22 @@ def main():
     x_norm = np.linalg.norm(x_calset[idx], axis=-1).mean(axis=-1)
 
     ax = correlation_plot(a=ota, b=x_norm, name_a='Task A-Optimality', name_b='X Norm',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     ax = correlation_plot(a=x_norm, b=mse_test, name_a='X Norm', name_b='MSE Prediction',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     ax = correlation_plot(a=ota, b=x_self_diff, name_a='Task A-Optimality', name_b='X Self Diff',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 
     ax = correlation_plot(a=x_self_diff, b=mse_test, name_a='X Self Diff', name_b='MSE Prediction',
-                          hl_idx=[-4, -3, -2, -1], colors=['g', 'r', 'matrix', 'y'],
+                          colors=['g', 'm'],
                           lower_perc=0.1, upper_perc=99.9)
     save_fig(fig=ax.get_figure(), save=save)
 

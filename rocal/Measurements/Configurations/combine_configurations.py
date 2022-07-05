@@ -1,64 +1,30 @@
 import numpy as np
 
-from wzk import get_exclusion_mask, read_msgpack, write_msgpack
-from wzk.trajectory import inner2full
+from wzk import tsp, read_msgpack, write_msgpack, new_fig
 
-from rokin.Robots.Justin19 import justin19_par as jtp, justin19_primitives, Justin19
-from rokin.Vis.robot_3d import animate_path
+from rokin.Robots.Justin19 import justin19_primitives
 
 from mopla.Optimizer import InitialGuess, gradient_descent, feasibility_check, choose_optimum
-from mopla.Parameter import parameter
+from mopla.Planner.slow_down_time import slow_down_q_path
+from mopla.main import chomp_mp
+from mopla.Parameter import get_par_justin19
+from mopla.World.real_obstacles import add_tube_img
+
 
 from rocal.definitions import *
 ICHR20_CALIBRATION_DATA = ICHR20_CALIBRATION
 
 
-# kauket_file = '/net/kauket/home_local/baeuml/tmp/two_arm_A_10.msgpk'
+par, gd, staircase = get_par_justin19()
 
-# General
-verbose = 1
-
-par = parameter.Parameter(robot=Justin19())
-par.n_wp = 20
-world_limits = np.array([[-2, 2],
-                         [-2, 2],
-                         [-0.5, 3.5]])
-par.update_oc(img=None, limits=world_limits)
-
-
-par.plan.include_end = False
 par.plan.obstacle_collision = False
 par.plan.self_collision = True
+
 par.check.obstacle_collision = False
 par.check.self_collision = True
 
-# Model for obstacle collision
-exclude_frames = []  # Base-0, Right_Hand-13, Left_Hand-22
-par.oc.active_spheres = get_exclusion_mask(a=jtp.SPHERES_F_IDX, exclude_values=exclude_frames)
-
-par.oc.n_substeps = 2
-par.oc.n_substeps = 2
-par.oc.n_substeps_check = 2
-par.sc.n_substeps = 1
-par.sc.n_substeps = 1
-par.sc.n_substeps_check = 2
-
-gd = parameter.GradientDescent()
-gd.n_steps = 100
-gd.clipping = 0.5
-gd.n_processes = 12
-n_multi_start_rp = [[0, 1, 2, 3], [1, 2 * gd.n_processes - 1, 2 * gd.n_processes, 1 * gd.n_processes]]
-
-
-par.weighting.length = 1
-par.weighting.collision = 500
-
-import numpy as np
-
-from wzk import geometry, tsp, new_fig, spatial
-
-from rokin.Vis.robot_3d import animate_path
-from mopla.Planner.slow_down_time import slow_down_q_path
+add_tube_img(img=par.oc.img, x=np.array([1.3, 0.0, 0.0]), length=1.2, radius=0.2, limits=par.world.limits)
+par.update_oc(img=par.oc.img)
 
 
 def order_configurations(q, q0, time_limit=300,
@@ -81,18 +47,25 @@ def order_configurations(q, q0, time_limit=300,
     return q_ordered, route
 
 
-def smooth_paths(q_path_list, verbose=1):
+def smooth_paths(q_path_list,
+                 delta_ramps=1,  # s
+                 mean_vel=0.5,   # rad/s
+                 max_vel=1,      # rad/s
+                 verbose=1):
     timestep_size = 0.001
-    delta_ramps = 1
-    mean_vel_q = 0.5
-    max_vel_q = 1
+
     is_periodic = None
 
     q_path_list_smooth = []
     for i, q_path in enumerate(q_path_list):
-        path_smooth = slow_down_q_path(q=q_path, mean_vel_q=mean_vel_q, max_vel_q=max_vel_q,
+        path_smooth = slow_down_q_path(q=q_path, mean_vel=mean_vel, max_vel=max_vel,
                                        delta_ramps=delta_ramps, timestep_size=timestep_size,
                                        is_periodic=is_periodic)
+        if len(path_smooth) < int((delta_ramps/timestep_size) * 3):
+            path_smooth = slow_down_q_path(q=q_path, mean_vel=mean_vel*1.5, max_vel=max_vel,
+                                           delta_ramps=delta_ramps/2, timestep_size=timestep_size,
+                                           is_periodic=is_periodic)
+
         q_path_list_smooth.append(path_smooth.tolist())
         if verbose > 0:
             print(f"{i} | shape: {path_smooth.shape}")
@@ -100,40 +73,41 @@ def smooth_paths(q_path_list, verbose=1):
     return q_path_list_smooth
 
 
-def calculate_trajectories_between(par, gd, q_list):
+def calculate_trajectories_between(q_list):
 
     fail_count_max = 50
     n = len(q_list)
 
-    get_x0 = InitialGuess.path.q0s_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
-                                                  n_wp=par.n_wp, order_random=True, mode='inner')
+    # get_x0 = InitialGuess.path.q0s_random_wrapper(robot=par.robot, n_multi_start=n_multi_start_rp,
+    #                                               n_wp=par.n_wp, order_random=True, mode='inner')
     q_path_list = np.zeros((n-1, par.n_wp, par.robot.n_dof))
 
     i = 0
     fail_count = 0
-    weighting = par.weighting.copy()
+    # weighting = par.weighting.copy()
     while i < n-1:
         print(f"Path: {i}/{n-1}")
         q_start = q_list[i, np.newaxis]
         q_end = q_list[i+1, np.newaxis]
 
         q_opt = InitialGuess.path.q0s_random(start=q_start, end=q_end, robot=par.robot,
-                                             n_wp=par.n_wp, n_multi_start=[[0], [1]], order_random=True)
-        feasible = feasibility_check(q=q_opt, par=par, verbose=0)
-        feasible = feasible >= 0
+                                             n_wp=par.n_wp, n_multi_start=[[0], [1]], order_random=True, mode='full')
+        feasible = feasibility_check(q=q_opt, par=par, verbose=0) > 0
 
-        if not feasible:
-            x0 = get_x0(start=q_start, end=q_end)
+        if feasible[0]:
+            q_path_list[i] = q_opt[0]
+
+        else:
+            print('Multi-Start')
+            # x0 = get_x0(start=q_start, end=q_end)
             par.q_start, par.q_end = q_start, q_end
-            par.weighting = weighting.copy()
-            q_opt, objective = gradient_descent.gd_chomp(q0=x0, par=par, gd=gd)
-
-            q_opt = inner2full(inner=q_opt, start=q_start, end=q_end)
-            feasible = feasibility_check(q=q_opt, par=par, verbose=0)
-            feasible = feasible >= 0
+            # par.weighting = weighting.copy()
+            # q_opt, objective = gradient_descent.gd_chomp(q0=x0, par=par, gd=gd)
+            q_opt, objective = chomp_mp(par, gd=gd, staircase=staircase)
+            feasible = feasibility_check(q=q_opt, par=par, verbose=0) > 0
             q_opt, *_ = choose_optimum.get_feasible_optimum(q=q_opt, par=par, verbose=2)
-            print(feasible, q_opt.shape[0])
 
+            print(feasible, q_opt.shape[0])
             if q_opt.shape[0] == 0:
                 i -= 1
                 fail_count += 1
@@ -145,9 +119,6 @@ def calculate_trajectories_between(par, gd, q_list):
                 q_path_list[i] = q_opt
 
             print("Fail Count", fail_count)
-
-        else:
-            q_path_list[i] = q_opt
 
         i += 1
 
@@ -225,10 +196,10 @@ def test_read():
 
 
 def main():
-    # directory_list = ["D", "E", "A", "B", "C"]
-    # # directory_list = ["B"]
-    # n_samples_list = [10, 100, 1000, 10000]
-    # # n_samples_list = [10]
+    directory_list = ["D", "E", "A", "B", "C"]
+    # directory_list = ["B"]
+    n_samples_list = [10, 100, 1000, 10000]
+    # n_samples_list = [10]
 
     q0 = justin19_primitives.justin19_primitives(justin='getready')
     # q_test0[jtp.JOINTS_ARM_LEFT] = np.array([0, -80, 90, -40, 0, 0, 0]) * np.pi / 180
@@ -242,3 +213,4 @@ def main():
             calculate_path(directory=f"TorsoRightLeft/{f}/", mode='ordered', n_samples=n)
             no_unnecessary_motion(directory=f"TorsoRightLeft/{f}", mode='ordered', n_samples=n,
                                   variable_joints=variable_joints, q0=q0)
+

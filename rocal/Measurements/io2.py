@@ -252,6 +252,23 @@ def save_m(directory, cal_rob, arr):
     return np.save(file, arr)
 
 
+def load_new():
+    import ardx.ardx as ardx
+    ardx.require("autocalib.detect-marker-ard.marker-detector-result-packets")
+    ardx.require("robotfusion.kinect-to-ardx.kinect-packets")
+    ardx.require("monitor.torso-monitor-packets")
+    # ardx.require("bcatch.imu-to-ard.imu-raw-packets")
+
+    filepath = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left/paths_10_kinect-left-1657027137-measurements"
+
+    rgb = ardx.read_recorder_file(filepath, "rgb-kinect", "kinect_rgb_packet")
+    marker = ardx.read_recorder_file(filepath, "marker-rgb-kinect", "MarkerDetectionResultPacket")
+    torso = ardx.read_recorder_file(filepath, "torso-monitor", "torso_monitor_packet")
+    # imu_base = ardx.read_recorder_file(filepath, "imu-base", "IMURDataPacket")
+
+    print(ardx.numpy_view(torso[2].q_poti))
+
+
 ########################################################################################################################
 def get_q(cal_rob, split, seed=0):
     from rocal.definitions import ICHR20_CALIBRATION

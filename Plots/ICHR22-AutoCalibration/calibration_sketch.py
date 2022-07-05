@@ -4,7 +4,7 @@ from wzk.mpl import (new_fig, save_fig, turn_ticks_off, get_pip, set_style,
                      FancyArrowX2, FancyBbox)
 
 from rokin.Vis import humanoid_robot_2d
-from rocal.definitions import ICHR20_CALIBRATION_FIGS
+from rocal.definitions import ICHR22_AUTOCALIBRATION_FIGS
 
 # INFO for 2columns look at commit "Calibration Sketch 2 columns"  / 4ff8c36a
 # INFO for 1columns look at commit "Calibration Sketch 1 column"  / ???
@@ -18,27 +18,21 @@ y1 = x1 * (np.sqrt(5.0) - 1.0) / 2.0
 head, chest, arms, hands, joints = humanoid_robot_2d.get_body_kwargs()
 hands['coord_frame'] = 'diamond'
 
-q_c = 0
-# q_ra = np.array([+1.3, +2, 0.4])
-# q_la = np.array([-1, -1.55, -0.45])
-q_ra = np.array([+1.2, +1.55, 0.4])
-q_la = np.array([-1.1, -2.1, -0.3])
-q = np.hstack((q_c, q_ra, q_la))
-robot_xy = np.array([x1*2/3, +.11])  # 2/3 for 2 columns
+q_c = 0.0
+q_h = 0.3
+q_r = np.array([+1.2, +0.0, 0.4])
+q_l = np.array([-0.9, -1.5, -1.1])
+q = np.hstack((q_c, q_r, q_l, q_h))
+robot_xy = np.array([x1*1/2, +.11])  # 2/3 for 2 columns
 
+plot_robot_side()
 # Camera Eyes
-cam1_xy = np.array([0.01, y1-0.01])
-# cam1_xy = np.array([0.3, y1-0.2])
-cam2_xy = np.array([x1*2/3, y1-0.01])
-cam3_xy = np.array([x1-0.01, y1-0.01])
+cam1_xy = robot_xy
+cam1_theta = np.deg2rad(120)
 
-cam1_theta = np.deg2rad(-25)
-cam2_theta = np.deg2rad(-90)
-cam3_theta = np.deg2rad(222)
-
-cam_r = 0.1
+cam_r = 0.07
 cam_arc = 0.5
-cam_c = 'k'
+cam_c = 'm'
 cam_lw = 0.8
 
 # Rays
@@ -87,19 +81,10 @@ turn_ticks_off(ax=ax)
 
 
 geometry.eye_pov(ax=ax, xy=cam1_xy, angle=cam1_theta, radius=cam_r, arc=cam_arc, color=cam_c, lw=cam_lw)
-geometry.eye_pov(ax=ax, xy=cam2_xy, angle=cam2_theta, radius=cam_r, arc=cam_arc, color=cam_c, lw=cam_lw)
-geometry.eye_pov(ax=ax, xy=cam3_xy, angle=cam3_theta, radius=cam_r, arc=cam_arc, color=cam_c, lw=cam_lw)
 
 target_r, target_l = humanoid_robot_2d.plot_robot(ax=ax, xy=robot_xy, q=q,
                                                   chest=chest, arms=arms, hands=hands, joints=joints, head=head)
 plot_ray(cam_x=cam1_xy, target_x=target_r, color=ray_color_orientation, offset1=0.06, _ax=ax)
-plot_ray(cam_x=cam1_xy, target_x=target_l, color=ray_color_orientation, offset1=0.06, _ax=ax)
-
-plot_ray(cam_x=cam2_xy, target_x=target_r, color=ray_color_valid, offset1=0.04, _ax=ax)
-plot_ray(cam_x=cam2_xy, target_x=target_l, color=ray_color_occlusion, offset1=0.17, _ax=ax)
-
-plot_ray(cam_x=cam3_xy, target_x=target_r, color=ray_color_valid, offset1=0.04, _ax=ax)
-plot_ray(cam_x=cam3_xy, target_x=target_l, color=ray_color_occlusion, offset1=0.205, _ax=ax)
 
 
 # Legend
@@ -139,6 +124,4 @@ ax_legend.text(x2_l, y_legend[-3], 'Occlusion Error', ha=ha, va=va, size=font_si
 ax_legend.text(x2_l, y_legend[-4], 'Orientation Error', ha=ha, va=va, size=font_size)
 ax_legend.text(x2_l, y_legend[-5], 'Target Marker', ha=ha, va=va, size=font_size)
 
-save_fig(file=ICHR20_CALIBRATION_FIGS+'Final/calibration_sketch', fig=fig, formats=('png', 'pdf'), bbox=None)
-
-# fig.savefig(fig=fig, fname=ICHR20_CALIBRATION+'Final/Calibration_Sketch2.pdf')
+# save_fig(file=ICHR22_AUTOCALIBRATION_FIGS+'Final/calibration_sketch', fig=fig, formats=('png', 'pdf'), bbox=None)

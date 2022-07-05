@@ -111,7 +111,7 @@ class Marker:
 MARKER_POLE = Marker(name='POLE',
                      f_robot_marker=np.array([[+np.sin(np.pi/6), 0, -np.cos(np.pi/6), +1.3],
                                               [0, 1, 0, 0],
-                                              [+np.cos(np.pi/6), 0, +np.sin(np.pi/6), +0.7],
+                                              [+np.cos(np.pi/6), 0, +np.sin(np.pi/6), +0.85],
                                               [0, 0, 0, 1]]),
                      f_idx_robot=None,
                      threshold_orientation=np.deg2rad(25), threshold_n_cameras=1,
