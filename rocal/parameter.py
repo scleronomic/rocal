@@ -17,7 +17,7 @@ class Parameter:
         self.method = 'PyOpt - SLSQP'  # way faster
         self.options = {'maxiter': 200,
                         'disp': True,
-                        'ftol': 1e-7}
+                        'ftol': 1e-9}
 
 
 def get_active_parameters(cal_rob):

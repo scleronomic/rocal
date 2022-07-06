@@ -174,12 +174,22 @@ def build_objective_cal_joints(q, t,
 def build_objective_cal_marker_image(q, t,
                                      kin_fun,
                                      cal_rob, cal_par):
-    camera = None
-    marker_right = None
-    marker_left = None
-    marker_pole = None
+
+    t_pole = t[:, 0]
+    t_right = t[:, 1]
+    t_left = t[:, 2]
+
+    i_pole = np.nonzero(t_pole.sum(axis=1) != 0)
+    i_right = np.nonzero(t_right.sum(axis=1) != 0)
+    i_left = np.nonzero(t_left.sum(axis=1) != 0)
+
+    t_pole = t_pole[i_pole]
+    t_right = t_right[i_right]
+    t_left = t_left[i_left]
 
     def objective(x, verbose=0):
+        # x = np.random.uniform(-0.001, +0.001, size=x.shape)
+        # print(x)
         f, cm, dh_torque = kin_fun(q=q, x=x)
 
         (cal_rob.marker_pole.f_robot_marker,
@@ -188,18 +198,18 @@ def build_objective_cal_marker_image(q, t,
          cal_rob.kinect.f_robot_camera) = cm
 
         distort = True
-        # u_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f, distort=distort)[:, ::-1]
-        # u_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f, distort=distort)[:, ::-1]
-        u_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f, distort=distort)[:, ::-1]
+        u_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f[i_pole], distort=distort)[:, ::-1]
+        u_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f[i_right], distort=distort)[:, ::-1]
+        u_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f[i_left], distort=distort)[:, ::-1]
 
-        # d = t - u_right
-        d = t - u_left
-        obj = np.sum(d**2)
-
+        d_pole = t_pole - u_pole
+        d_right = t_right - u_right
+        d_left = t_left - u_left
+        d = np.concatenate((d_pole, d_right, d_left), axis=0)
+        # obj = np.sum(d ** 2)
+        # obj = np.sum(d_right**2) + np.sum(d_left**2)
+        obj = np.sum(d_left**2)
         print(obj)
-        # TODO not every measurement has every n
-
-        # obj = measure_pixel_difference()
 
         if cal_par.x_weighting != 0:
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
@@ -208,8 +218,6 @@ def build_objective_cal_marker_image(q, t,
             # stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
             return d, obj
             # return stats, obj
-
-
 
         return obj
 

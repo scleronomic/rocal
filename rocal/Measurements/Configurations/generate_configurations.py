@@ -180,13 +180,14 @@ def add_4corner_head_configurations(robot, camera, marker, q, verbose=1):
         b4_ = check_u(u=u4_)
         return q4_, b4_
 
-    def plot_u4(_u0, _u4, _b4):
+    def plot_u4(_u0, _u4, _b4, ax=None):
         x_px, y_px = camera.resolution
 
         directory = f"{ICHR22_AUTOCALIBRATION}/{repr(marker)}/"
         safe_mkdir(directory=directory)
+        if ax is None:
+            fig, ax = new_fig(aspect=1, title=repr(marker))
 
-        fig, ax = new_fig(aspect=1, title=repr(marker))
         # Switch x and y
         _u4 = _u4[:, :, ::-1]
         _u0 = _u0[:, ::-1]
@@ -196,8 +197,9 @@ def add_4corner_head_configurations(robot, camera, marker, q, verbose=1):
         ax.set_ylabel('x [px]')
 
         ax.plot(*_u0.T, ls='', marker='x', color='k', zorder=10)
+        colors_list = ['r', 'g', 'b', 'y']
         for i in range(0, 4):
-            ax.plot(*_u4[_b4[:, i], i, :].T, ls='', marker='o', alpha=0.3)
+            ax.plot(*_u4[_b4[:, i], i, :].T, ls='', marker='o', alpha=0.3, color=colors_list[i])
 
         if verbose > 10:
             save_fig(f"{directory}/u_distribution", formats='pdf')
@@ -213,7 +215,7 @@ def add_4corner_head_configurations(robot, camera, marker, q, verbose=1):
     dq_pan_max = 18
     dq_tilt_max = 24
 
-    boarder_px = 50
+    boarder_px = 80
     interesting_px = 100
 
     u0 = camera.project_marker2image(robot=robot, marker=marker, q=q, distort=False)
@@ -227,10 +229,10 @@ def add_4corner_head_configurations(robot, camera, marker, q, verbose=1):
 
         q4[~b4, :] = q4_i[~b4, :]
         b4[~b4] = b4_i[~b4]
-        if mean == b4.mean():
-            break
-        else:
-            mean = b4.mean()
+        # if mean == b4.mean():
+        #     break
+        # else:
+        #     mean = b4.mean()
 
     u4 = camera.project_marker2image(robot=robot, marker=marker, q=q4, distort=False)
 
@@ -289,13 +291,14 @@ def generate_configurations_main(n, mode):
     gen = define_generation_parameters(mode=mode)
 
     if mode == 'kinect_pole':
-        rejection_sampling_pole(n=n)
+        rejection_sampling_pole(n=int(n*1.2))
 
     with tictoc() as _:
-        q = rejection_sampling(gen=gen, n=n, m=100000)
+        q = rejection_sampling(gen=gen, n=int(n*1.2), m=100000)
 
     q = reject(gen=gen, q=q)
     q = reject(gen=gen, q=q)
+    q = q[:n]
 
     np.save(f"{ICHR22_AUTOCALIBRATION}/q{n}_random_{gen.name}.npy", q)
 
@@ -320,7 +323,7 @@ def generate_trajectories(mode, n_list):
         n0 = sum(n_list[:i])
         print(f"{mode} | {n} ({n0}-{n0+n})")
 
-        q, route = combine_configurations.order_configurations(q=q10000[n0:n0+n], q0=q0, time_limit=30)
+        q, route = combine_configurations.order_configurations(q=q10000[n0:n0+n], q0=q0, time_limit=min(n//5, 30))
 
         q5 = add_4corner_head_configurations(robot=gen.par.robot,
                                              camera=gen.camera_marker.cameras[0],
@@ -329,11 +332,13 @@ def generate_trajectories(mode, n_list):
         q5 = np.concatenate(q5, axis=0)
         q = np.concatenate((q0, q5, q0), axis=0)
 
-        q_mirror = q.copy()
-        q_mirror[..., 3:10] = q[..., 10:17]
-        q_mirror[..., 10:17] = q[..., 3:10]
-        q_mirror[..., 17] = -q[..., 17]
-        q = q_mirror.copy()
+        # q_mirror = q.copy()
+        # q_mirror[..., 3:10] = q[..., 10:17]
+        # q_mirror[..., 10:17] = q[..., 3:10]
+        # q_mirror[..., 17] = -q[..., 17]
+        # q = q_mirror.copy()
+
+        # robot_3d.animate_path(q=q, robot=gen.par.robot)
 
         q_path_list = combine_configurations.calculate_trajectories_between(q_list=q)
 
@@ -351,29 +356,42 @@ def generate_trajectories(mode, n_list):
         par.update_oc(img=par.oc.img)
         print('Feasibility Check', np.mean(feasibility_check(par=par, q=np.array(q_path_list))))
 
-        q_path_list_smooth = combine_configurations.smooth_paths(q_path_list=q_path_list, )
+        q_path_list = np.array(q_path_list).copy()
+        q_mirror = q_path_list.copy()
+        q_mirror[..., 3:10] = q_path_list[..., 10:17]
+        q_mirror[..., 10:17] = q_path_list[..., 3:10]
+        q_mirror[..., 17] = -q_path_list[..., 17]
+        # robot_3d.animate_path(q=np.concatenate(q_mirror, axis=0), robot=gen.par.robot)
+
+        q_path_list_smooth = combine_configurations.smooth_paths(q_path_list=q_path_list)
+        q_path_list_smooth_mirror = combine_configurations.smooth_paths(q_path_list=q_mirror)
 
         directory = f"{ICHR22_AUTOCALIBRATION}/Measurements/Test"
         safe_mkdir(directory)
-        combine_configurations.write_msgpack(file=f"{directory}/paths_{n}_{gen.name}_mirror.bin",
+        combine_configurations.write_msgpack(file=f"{directory}/paths_{n}_{gen.name}.bin",
                                              nested_list=q_path_list_smooth)
+        combine_configurations.write_msgpack(file=f"{directory}/paths_{n}_{'kinect-right'}.bin",
+                                             nested_list=q_path_list_smooth_mirror)
 
 
 if __name__ == '__main__':
     from rocal.Measurements.Configurations import combine_configurations
 
-    rejection_sampling_pole(n=10000)
+    # generate_configurations_main(n=10000, mode='kinect_left')
 
-    mode = 'kinect_pole'
-    gen = define_generation_parameters(mode=mode)
-    q = np.load(f"{ICHR22_AUTOCALIBRATION}/q10000_random_{gen.name}.npy")
+    # rejection_sampling_pole(n=10000)
+
+    # mode = 'kinect_pole'
+    # gen = define_generation_parameters(mode=mode)
+    # q = np.load(f"{ICHR22_AUTOCALIBRATION}/q10000_random_{gen.name}.npy")
     # plot_head_configurations(mode=mode)
 
     n_list = [10, 20, 50, 100]
     # generate_trajectories(mode='kinect_right', n_list=n_list)
     # generate_trajectories(mode='kinect_left', n_list=n_list)
-    generate_trajectories(mode='kinect_pole', n_list=n_list)
+    generate_trajectories(mode='kinect_left', n_list=n_list)
 
+    # plot_head_configurations(mode='kinect_left')
 
     # np.save(f"{directory}/q_path_{n}.npy", q_path_list)
     # # robot_3d.animate_path(robot=Justin19(), q=np.concatenate(q_path_list, axis=0), kwargs_frames=dict(f_idx_robot=[26], f_fix=F_WORLD_MARKER))

@@ -7,9 +7,9 @@ from mopla.Planner.ardx2 import ardx, pkt2dict
 from rocal.definitions import ICHR22_AUTOCALIBRATION
 #ardx.require("bcatch.imu-to-ard.imu-raw-packets")
 
-# filepath = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left/paths_10_kinect-left-1657027137-measurements"
-# filepath = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_10_kinect-right_mirror-1657042612-measurements"
-filepath = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Pole/paths_10_kinect-pole-1657033930-measurements"
+file_pole = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Pole/paths_10_kinect-pole-1657117796-measurements"
+file_right = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_20_kinect-right-1657119419-measurements"
+file_left = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left/paths_20_kinect-left-1657118908-measurements"
 
 
 def pkt_list2dict_list(file):
@@ -33,10 +33,6 @@ def pkt_list2dict_list(file):
     np.save(file, arr=d)
 
 
-pkt_list2dict_list(file=filepath)
-# q - measured joint positions | q_poti - commanded joint positions
-
-
 def load_wrapper(d):
     if isinstance(d, str):
         d = np.load(d, allow_pickle=True)
@@ -44,6 +40,7 @@ def load_wrapper(d):
 
 
 def get_q(di):
+    # q - measured joint positions | q_poti - commanded joint positions
     return np.array([di['torso']['q']])[0]
 
 
@@ -99,23 +96,36 @@ def get_qus(d):
     return q, u
 
 
-if __name__ == '__main__':
-    pass
+def pkt_list2dict_list_all():
+    from wzk.files import list_directories
+    main_directory = '/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left'
 
+    sub_directories = ['Pole', 'Right', 'Left']
+
+    for sub_directory in sub_directories:
+        directory = f'{main_directory}/{sub_directory}'
+        for file in list_directories(directory):
+            pkt_list2dict_list(file)
+
+
+if __name__ == '__main__':
+    pkt_list2dict_list_all()
 
     # from matplotlib import pyplot as plt
     #
     # from wzk.mpl import new_fig, imshow, save_fig
     # from rokin.Robots import Justin19
-    # from rocal.Tools import KINECT, MARKER_LEFT, MARKER_RIGHT
+    # from rocal.Tools import KINECT, MARKER_LEFT, MARKER_RIGHT, MARKER_POLE
     #
     # # file = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-left-1657027137-measurements.npy"
-    # file = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-right_mirror-1657042612-measurements.npy"
+    # # file = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-right_mirror-1657042612-measurements.npy"
+    # file = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-pole-1657033930-measurements.npy"
+    #
     # d = np.load(file, allow_pickle=True)
     #
     # q = get_qs(d)
     # robot = Justin19()
-    # u0 = KINECT.project_marker2image(robot=robot, marker=MARKER_RIGHT, q=q, distort=False)
+    # u0 = KINECT.project_marker2image(robot=robot, marker=MARKER_POLE, q=q, distort=False)
     # u0[:, :] = u0[:, ::-1]
     #
     # plot_all_images(d=d)
