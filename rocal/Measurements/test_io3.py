@@ -98,7 +98,7 @@ def get_qus(d):
 
 def pkt_list2dict_list_all():
     from wzk.files import list_directories
-    main_directory = '/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left'
+    main_directory = '/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect'
 
     sub_directories = ['Pole', 'Right', 'Left']
 
