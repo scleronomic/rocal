@@ -64,6 +64,7 @@ def kinematic(cal_rob,
 
     # Forward Kinematic with compliance in the joints
     f = cal_rob.get_frames_dh(q=q, dh=dh)
+    dh_trq = None
     for i in range(cal_rob.el_loop):
         dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, el=el, ma=ma)
         f = cal_rob.get_frames_dh(q=q, dh=dh_trq)

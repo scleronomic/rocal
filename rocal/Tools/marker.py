@@ -37,13 +37,17 @@ class Marker:
     def __repr__(self):
         return f"Marker:{self.name}"
 
-    def get_frames(self, robot, q):
+    def get_frames(self, f=None,
+                   robot=None, q=None):
+
+        if f is None:
+            f = robot.get_frames(q)
+
         if self.f_idx_robot is None:
-            f_world_marker = np.zeros(q.shape[:-1] + self.f_robot_marker.shape)
+            f_world_marker = np.zeros(f.shape[:-3] + self.f_robot_marker.shape)
             f_world_marker[...] = self.f_robot_marker
 
         else:
-            f = robot.get_frames(q)
             f_world_marker = f[..., self.f_idx_robot, :, :] @ self.f_robot_marker
 
         return f_world_marker
@@ -111,16 +115,16 @@ class Marker:
 MARKER_POLE = Marker(name='POLE',
                      f_robot_marker=np.array([[+np.sin(np.pi/6), 0, -np.cos(np.pi/6), +1.3],
                                               [0, 1, 0, 0],
-                                              [+np.cos(np.pi/6), 0, +np.sin(np.pi/6), +0.85],
+                                              [+np.cos(np.pi/6), 0, +np.sin(np.pi/6), +1.0 - 0.09 - 0.5885],
                                               [0, 0, 0, 1]]),
-                     f_idx_robot=None,
+                     f_idx_robot=0,
                      threshold_orientation=np.deg2rad(25), threshold_n_cameras=1,
                      remove_spheres_f_idx=[25], inflate_spheres_rad=0.03)
 
 MARKER_RIGHT = Marker(name='RIGHT',
-                      f_robot_marker=np.array([[0, 0, 1, 0.03],
-                                               [1, 0, 0, 0],
-                                               [0, 1, 0, 0.01],
+                      f_robot_marker=np.array([[0, 0, 1, 0.035],
+                                               [1, 0, 0, -0.013],
+                                               [0, 1, 0, 0.013],
                                                [0, 0, 0, 1]]),
                       f_idx_robot=13,
                       threshold_orientation=np.deg2rad(25), threshold_n_cameras=1,

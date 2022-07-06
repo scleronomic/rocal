@@ -180,23 +180,36 @@ def build_objective_cal_marker_image(q, t,
     marker_pole = None
 
     def objective(x, verbose=0):
-
         f, cm, dh_torque = kin_fun(q=q, x=x)
 
-        cm = [f_robot_pole, f_robot_right, f_robot_left, f_robot_camera]
+        (cal_rob.marker_pole.f_robot_marker,
+         cal_rob.marker_right.f_robot_marker,
+         cal_rob.marker_left.f_robot_marker,
+         cal_rob.kinect.f_robot_camera) = cm
 
-        t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
+        distort = True
+        # u_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f, distort=distort)[:, ::-1]
+        # u_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f, distort=distort)[:, ::-1]
+        u_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f, distort=distort)[:, ::-1]
 
+        # d = t - u_right
+        d = t - u_left
+        obj = np.sum(d**2)
+
+        print(obj)
         # TODO not every measurement has every n
 
-        obj = measure_pixel_difference()
+        # obj = measure_pixel_difference()
 
         if cal_par.x_weighting != 0:
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
-            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
-            return stats, obj
+            # stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
+            return d, obj
+            # return stats, obj
+
+
 
         return obj
 

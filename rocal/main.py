@@ -9,9 +9,6 @@ from rocal.parameter import Parameter, unwrap_x
 
 from rocal.definitions import ICHR20_CALIBRATION
 
-# TODO check_marker_occlusion(q)
-# TODO check for duplicate indices
-# TODO clip the 1000 bestworst because only a small portion is at the extremes
 # FINDING 10000 test configurations is easily enough to have a small variance
 
 
@@ -20,7 +17,7 @@ cal_par = Parameter()
 
 def search_world_frame(_cal_rob, q, t):
     """
-    its hard / impossible to find the correct world frame if it the initial guess is far off
+    its hard / impossible to find the correct world frame if the initial guess is far off
        -> try multi start and safe the good fits
     """
     n = 100

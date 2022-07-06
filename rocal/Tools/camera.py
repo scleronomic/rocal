@@ -54,18 +54,26 @@ class Camera:
         u = self.center_point + self.focal_length * u
         return u
 
-    def get_frames(self, robot, q):
+    def get_frames(self, f=None,
+                   robot=None, q=None):
+
+        if f is None:
+            f = robot.get_frames(q)
+
         if self.f_idx_robot is None:
-            f_world_camera = np.zeros(q.shape[:-1] + self.f_robot_camera.shape)
+            f_world_camera = np.zeros(f.shape[:-3] + self.f_robot_camera.shape)
             f_world_camera[...] = self.f_robot_camera
         else:
-            f_world_camera = robot.get_frames(q)[..., self.f_idx_robot, :, :] @ self.f_robot_camera
+            f_world_camera = f[..., self.f_idx_robot, :, :] @ self.f_robot_camera
 
         return f_world_camera
 
-    def project_marker2image(self, robot, marker, q, distort=True):
-        f_world_camera = self.get_frames(robot=robot, q=q)
-        f_world_marker = marker.get_frames(robot=robot, q=q)
+    def project_marker2image(self, marker,
+                             f=None,
+                             robot=None, q=None,
+                             distort=True):
+        f_world_camera = self.get_frames(f=f, robot=robot, q=q)
+        f_world_marker = marker.get_frames(f=f, robot=robot, q=q)
 
         f_camera_marker = spatial.invert(f_world_camera) @ f_world_marker
         p_camera_marker = f_camera_marker[..., :-1, -1]
@@ -305,8 +313,16 @@ def define_kinect(verbose=0):
                          resolution=(640, 480),
                          threshold_frustum=np.deg2rad(25),
                          f_idx_robot=26,
-                         f_robot_camera=spatial.trans_rotvec2frame(trans=np.array([0.135, 0.002, 0.143]),
-                                                                   rotvec=np.array([2.234, 0.024, 2.198])))
+                         # f_robot_camera=spatial.trans_rotvec2frame(trans=np.array([0.135, 0.002, 0.143]),
+                         #                                           rotvec=np.array([2.234, 0.024, 2.198])),
+                         # f_robot_camera=np.array([[0.0136515221298320,  0.0035454505680285,  0.9999005279145556,  0.1302487301832420],
+                         #                          [0.0189507422071757,  -0.9998150173133284,  0.0032864151510077,  0.0006042403509293],
+                         #                          [0.9997272154509622,  0.0189039925681658,  -0.0137161857543143,  0.1462887526215707],
+                         #                          [0., 0., 0., 1.]])
+                         f_robot_camera=np.array([[ 2.17783050e-02,  2.04164655e-02,  9.99554337e-01, 1.35092871e-01],
+                                                  [ 1.79227071e-02, -9.99638769e-01,  2.00276898e-02, 7.00945008e-04],
+                                                  [ 9.99602162e-01,  1.74785504e-02, -2.21363563e-02, 1.74262252e-01],
+                                                  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00, 1.00000000e+00]]))
 
 
 VICON = define_vicon(verbose=0)

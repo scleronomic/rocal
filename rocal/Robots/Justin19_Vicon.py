@@ -121,11 +121,8 @@ f_head_target0 = np.array([[1, 0, 0, 0.05],
                            [0, 0, 1, 0.25],
                            [0, 0, 0, 1]])
 
-p_r_m = [-0.1, -0.03, +0.1]
-p_l_m = [-0.1, 0.03, 0.05]
 
-
-class Justin19Cal(Justin19, RobotCal):
+class Justin19CalVicon(Justin19, RobotCal):
     def __init__(self, **kwargs):
         Justin19.__init__(self)
         RobotCal.__init__(self, **kwargs)
