@@ -105,7 +105,7 @@ def pkt_list2dict_list_all():
     for sub_directory in sub_directories:
         directory = f'{main_directory}/{sub_directory}'
         for file in list_directories(directory):
-            pkt_list2dict_list(file)
+            pkt_list2dict_list(f'{directory}/{file}')
 
 
 if __name__ == '__main__':
