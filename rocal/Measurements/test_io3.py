@@ -130,7 +130,7 @@ def pkt_list2dict_list_all():
 # pass
 def copy_marker_txt():
 
-    from wzk import list_directories, copy
+    from wzk import list_directories, cp
     directory_wink_do = '/home/wink_do/public/autocalib/marker_detections/'
     directory_tenh_jo = '/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/{mode}'
     dirs = list_directories(directory_wink_do)
@@ -150,7 +150,7 @@ def copy_marker_txt():
         file_a = f"{directory_wink_do}/{d}/marker.txt"
         file_b = f"{directory_tenh_jo.format(mode=mode)}/{d}/marker.txt"
 
-        copy(src=file_a, dst=file_b)
+        cp(src=file_a, dst=file_b)
 
 
 if __name__ == '__main__':
