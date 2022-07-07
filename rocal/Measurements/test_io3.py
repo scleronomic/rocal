@@ -132,23 +132,23 @@ def copy_marker_txt():
 
     from wzk import list_directories, copy
     directory_wink_do = '/home/wink_do/public/autocalib/marker_detections/'
-    directory_tenh_jo = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/{mode}"
+    directory_tenh_jo = '/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/{mode}'
     dirs = list_directories(directory_wink_do)
 
     print(dirs)
     for d in dirs:
 
         if 'pole' in d:
-            mode = 'right'
+            mode = 'Right'
         elif 'right' in d:
-            mode = 'left'
+            mode = 'Left'
         elif 'left' in d:
-            mode = 'pole'
+            mode = 'Pole'
         else:
             raise ValueError('mode not found')
 
         file_a = f"{directory_wink_do}/{d}/marker.txt"
-        file_b = f"{directory_tenh_jo.format(mode)}/{d}/marker.txt"
+        file_b = f"{directory_tenh_jo.format(mode=mode)}/{d}/marker.txt"
 
         copy(src=file_a, dst=file_b)
 
