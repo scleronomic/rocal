@@ -17,7 +17,8 @@ class Parameter:
         self.method = 'PyOpt - SLSQP'  # way faster
         self.options = {'maxiter': 200,
                         'disp': True,
-                        'ftol': 1e-9}
+                        'ftol': 1e-5,
+                        'sens_step': 1e-4}
 
 
 def get_active_parameters(cal_rob):
@@ -48,13 +49,16 @@ def get_active_parameters(cal_rob):
         'o' - orientation
         'f' - full
         'c' - custom
+
+    ad: additional parameters (user has to handle those inside the measurement function)
+        '0' - zero
+        'f' - full
+        'c' - custom
     """
-    dh, el, ma, cm = cal_rob.dkmc
-    n_dh, n_el, n_cm, n_ma = cal_rob.n_dh, cal_rob.n_el, cal_rob.n_cm, cal_rob.n_ma
-    m_dh = 4
-    m_cp = 3
-    m_ma = 4
-    m_cm = 6
+
+    dh, el, ma, cm, ad = cal_rob.dkmca
+    n_dh, n_el, n_cm, n_ma, n_ad = cal_rob.n_dh, cal_rob.n_el, cal_rob.n_cm, cal_rob.n_ma, cal_rob.n_ad
+    m_dh, m_el, m_ma, m_cm, m_ad = 4, 3, 4, 6, 1
 
     __error_string = ("Unknown {}-mode '{}'. Use one of the following: "
                       " ['j' (joint offsets), 'f' (full), 'c' (custom)]")
@@ -76,15 +80,15 @@ def get_active_parameters(cal_rob):
 
     # Elasticity
     if el == '0':
-        el_bool = np.zeros((n_el, m_cp), dtype=bool)
+        el_bool = np.zeros((n_el, m_el), dtype=bool)
     elif el == 'j':
-        el_bool = np.zeros((n_el, m_cp), dtype=bool)
+        el_bool = np.zeros((n_el, m_el), dtype=bool)
         el_bool[:, -1] = True
     elif el == 'f':
-        el_bool = np.ones((n_el, m_cp), dtype=bool)
+        el_bool = np.ones((n_el, m_el), dtype=bool)
     elif el == 'c':
-        el_bool = cal_rob.cp_bool_c
-        assert el_bool.shape == (n_el, m_cp)
+        el_bool = cal_rob.el_bool_c
+        assert el_bool.shape == (n_el, m_el)
 
     else:
         raise ValueError(__error_string.format('el', el))
@@ -121,19 +125,30 @@ def get_active_parameters(cal_rob):
         cm_bool = cal_rob.cm_bool_c
         assert cm_bool.shape == (n_cm, m_cm)
     else:
-        raise ValueError(__error_string.format('ma', ma))
+        raise ValueError(__error_string.format('cm', cm))
 
-    excluded_joints = cal_rob.frame_frame_influence[:, cal_rob.cm_f_idx].sum(axis=-1) == 0
-    excluded_joints = excluded_joints[cal_rob.joint_f_idx_dh]
-    dh_bool[excluded_joints] = False
-    el_bool[excluded_joints] = False
-    return dh_bool, el_bool, ma_bool, cm_bool
+    # Additional parameters
+    if ad == '0':
+        ad_bool = np.zeros((n_ad, m_ad), dtype=bool)
+    elif ad == 'f':
+        ad_bool = np.ones((n_ad, m_ad), dtype=bool)
+    elif ad == 'c':
+        ad_bool = cal_rob.cm_bool_c
+        assert ad_bool.shape == (n_ad, m_ad)
+    else:
+        raise ValueError(__error_string.format('ad', ad))
+
+    # excluded_joints = cal_rob.frame_frame_influence[:, cal_rob.cm_f_idx].sum(axis=-1) == 0
+    # excluded_joints = excluded_joints[cal_rob.joint_f_idx_dh]
+    # dh_bool[excluded_joints] = False
+    # el_bool[excluded_joints] = False
+    return dh_bool, el_bool, ma_bool, cm_bool, ad_bool
 
 
 def get_x_bool_dict(cal_rob):
-    dh_bool, el_bool, ma_bool, cm_bool = get_active_parameters(cal_rob)
-    n = dh_bool.sum() + el_bool.sum() + ma_bool.sum() + cm_bool.sum()
-    x_bool_dict = dict(dh_bool=dh_bool, el_bool=el_bool, ma_bool=ma_bool, cm_bool=cm_bool)
+    dh_bool, el_bool, ma_bool, cm_bool, ad_bool = get_active_parameters(cal_rob)
+    n = dh_bool.sum() + el_bool.sum() + ma_bool.sum() + cm_bool.sum() + ad_bool.sum()
+    x_bool_dict = dict(dh_bool=dh_bool, el_bool=el_bool, ma_bool=ma_bool, cm_bool=cm_bool, ad_bool=ad_bool)
     return n, x_bool_dict
 
 
@@ -170,10 +185,10 @@ def wrap_x(x, cal_rob):
     n, x_bool_dict = get_x_bool_dict(cal_rob=cal_rob)
 
     if isinstance(x, dict):
-        dh, el, ma, cm = tuple([x[key] for key in x])
+        dh, el, ma, cm, ad = tuple([x[key] for key in x])
 
     elif isinstance(x, (tuple, list)):
-        dh, el, ma, cm = tuple([xx for xx in x])
+        dh, el, ma, cm, ad = tuple([xx for xx in x])
 
     else:
         raise ValueError
@@ -182,7 +197,8 @@ def wrap_x(x, cal_rob):
     x = np.hstack((dh[x_bool_dict['dh_bool']].ravel(),
                    el[x_bool_dict['el_bool']].ravel(),
                    ma[x_bool_dict['ma_bool']].ravel(),
-                   cm[x_bool_dict['cm_bool']].ravel()))
+                   cm[x_bool_dict['cm_bool']].ravel(),
+                   ad[x_bool_dict['ad_bool']].ravel()))
     return x
 
 
@@ -192,11 +208,11 @@ def unwrap_x(cal_rob, x, add_nominal_offset=False):
     x = x_unwrapper(x)
     if add_nominal_offset:
         x = offset_nominal_parameters(cal_rob=cal_rob, **x)
-        x = dict(dh=x[0], el=x[1], ma=x[2], cm=x[3])
+        x = dict(dh=x[0], el=x[1], ma=x[2], cm=x[3], ad=x[4])
     return x
 
 
-def create_x_unwrapper(cm_bool, dh_bool, el_bool, ma_bool,
+def create_x_unwrapper(cm_bool, dh_bool, el_bool, ma_bool, ad_bool,
                        update_dict=None):
 
     def x_unwrapper(x):
@@ -204,8 +220,9 @@ def create_x_unwrapper(cm_bool, dh_bool, el_bool, ma_bool,
         el, j = __calibration_bool2number(cal_bool=el_bool, idx0=j, x=x)
         ma, j = __calibration_bool2number(cal_bool=ma_bool, idx0=j, x=x)
         cm, j = __calibration_bool2number(cal_bool=cm_bool, idx0=j, x=x)
+        ad, j = __calibration_bool2number(cal_bool=ad_bool, idx0=j, x=x)
 
-        d = dict(dh=dh, el=el, ma=ma, cm=cm)
+        d = dict(dh=dh, el=el, ma=ma, cm=cm, ad=ad)
         if update_dict:
             d = update_dict(d)
 
@@ -215,10 +232,12 @@ def create_x_unwrapper(cm_bool, dh_bool, el_bool, ma_bool,
 
 
 def offset_nominal_parameters(cal_rob,
-                              dh, el, ma, cm):
+                              dh, el, ma, cm, ad):
     # Update nominal values of robot
     dh2 = cal_rob.dh + dh
     el2 = cal_rob.el + el
     ma2 = cal_rob.ma + ma
     cm2 = cal_rob.cm @ spatial.trans_rotvec2frame(trans=cm[:, :3], rotvec=cm[:, 3:])
-    return dh2, el2, ma2, cm2
+    ad2 = ad
+
+    return dh2, el2, ma2, cm2, ad2

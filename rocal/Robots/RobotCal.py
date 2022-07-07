@@ -2,7 +2,7 @@ from rokin.Robots import Robot
 
 
 class RobotCal(Robot):
-    def __init__(self, dkmc,
+    def __init__(self, dkmca,
                  target_mode='p',
                  el_loop=0,
                  use_imu=False,
@@ -11,7 +11,7 @@ class RobotCal(Robot):
 
         super().__init__()
 
-        self.dkmc = dkmc
+        self.dkmca = dkmca
         # self.config_filter = config_filter
         self.target_mode = target_mode  # (p)os (r)ot pr
         self.use_imu = use_imu
@@ -22,14 +22,18 @@ class RobotCal(Robot):
         self.n_dh = len(self.dh)
 
         # K, elasticities, non-geometric model
-        self.el = 0
         self.el_loop = el_loop
         self.n_el = len(self.dh)
+        self.el = 0
 
         # M, masses, non-geometric model
         self.n_ma = 0
         self.ma = 0
 
-        # F, parameters to close the measurement loop
+        # C, parameters to close the measurement loop
         self.n_cm = 0
         self.cm = 0
+
+        # A, additional parameters the user might want to use
+        self.n_a = 0
+        self.ad = 0

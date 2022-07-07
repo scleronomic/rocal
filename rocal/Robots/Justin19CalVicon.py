@@ -48,55 +48,55 @@ dh_bool_head = np.array([[1, 1, 1, 1],
 dh_bool_head = np.zeros_like(dh_bool_head, dtype=bool)
 
 
-# cp_bool_torso = np.array([[5, 3, 9],
+# el_bool_torso = np.array([[5, 3, 9],
 #                           [5, 5, 3],
 #                           [4, 5, 5],
 #                           [9, 5, 4]]) <= 4
 
-cp_bool_torso = np.array([[0, 0, 0],
+el_bool_torso = np.array([[0, 0, 0],
                           [1, 0, 1],
                           [1, 0, 1],
                           [0, 0, 1]], dtype=bool)
-# cp_bool_torso = np.array([[0, 0, 0],
+# el_bool_torso = np.array([[0, 0, 0],
 #                           [0, 0, 1],
 #                           [0, 0, 1],
 #                           [0, 0, 1]], dtype=bool)
 #
-# cp_bool_arm = np.array([[1, 1, 1],
+# el_bool_arm = np.array([[1, 1, 1],
 #                         [0, 1, 1],
 #                         [1, 0, 1],
 #                         [1, 1, 1],
 #                         [1, 1, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 1]], dtype=bool)
-# cp_bool_arm = np.array([[0, 1, 1],
+# el_bool_arm = np.array([[0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1],
 #                         [0, 1, 1]], dtype=bool)
-cp_bool_arm = np.array([[1, 0, 1],
+el_bool_arm = np.array([[1, 0, 1],
                         [1, 0, 1],
                         [1, 0, 1],
                         [1, 0, 1],
                         [1, 0, 1],
                         [0, 0, 0],
                         [0, 0, 0]], dtype=bool)
-# cp_bool_arm = np.array([[0, 0, 1],
+# el_bool_arm = np.array([[0, 0, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 1],
 #                         [0, 0, 0],
 #                         [0, 0, 0]], dtype=bool)
-# cp_bool_arm = np.zeros_like(cp_bool_arm, dtype=bool)
+# el_bool_arm = np.zeros_like(el_bool_arm, dtype=bool)
 
-# cp_bool_head = np.array([[1, 1, 1],
+# el_bool_head = np.array([[1, 1, 1],
 #                          [1, 1, 1]], dtype=bool)
-cp_bool_head = np.array([[1, 0, 1],
+el_bool_head = np.array([[1, 0, 1],
                          [1, 0, 1]], dtype=bool)
-cp_bool_head = np.zeros_like(cp_bool_head, dtype=bool)
+el_bool_head = np.zeros_like(el_bool_head, dtype=bool)
 
 
 cm_bool = np.array([[1, 1, 1, 1, 1, 1],
@@ -131,10 +131,10 @@ class Justin19CalVicon(Justin19, RobotCal):
         self.n_dh = len(self.dh)
         self.dh_bool_c = np.vstack((dh_bool_torso, dh_bool_arm, dh_bool_arm, dh_bool_head))
 
-        # CP
+        # EL
         self.n_el = len(self.dh)
         self.el = np.zeros((self.n_el, 3))
-        self.cp_bool_c = np.vstack((cp_bool_torso, cp_bool_arm, cp_bool_arm, cp_bool_head))
+        self.el_bool_c = np.vstack((el_bool_torso, el_bool_arm, el_bool_arm, el_bool_head))
 
         # MA
         self.n_ma = len(self.masses)

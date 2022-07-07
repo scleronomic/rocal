@@ -33,7 +33,7 @@ def build_objective_cal_marker(q, t,
 
     def objective(x, verbose=0):
 
-        f, cm, dh_torque = kin_fun(q=q, x=x)
+        (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
 
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
@@ -126,7 +126,8 @@ def build_objective_cal_touch(q, t,
     pairs, t = t
 
     def objective(x, verbose=0):
-        f, cm = kin_fun(q=q, x=x)
+        (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
+
 
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 
@@ -153,7 +154,8 @@ def build_objective_cal_joints(q, t,
 
     def objective(x, verbose=0):
 
-        f, cm, dh_trq = kin_fun(q=q_c, x=x)
+        (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
+
         q_delta = dh_trq[:, :, 1] - cal_rob.dh[np.newaxis, :, 1]
         q_delta = np.delete(q_delta, 3, axis=1)
 
@@ -190,12 +192,17 @@ def build_objective_cal_marker_image(q, t,
     def objective(x, verbose=0):
         # x = np.random.uniform(-0.001, +0.001, size=x.shape)
         # print(x)
-        f, cm, dh_torque = kin_fun(q=q, x=x)
+        (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
 
         (cal_rob.marker_pole.f_robot_marker,
          cal_rob.marker_right.f_robot_marker,
          cal_rob.marker_left.f_robot_marker,
-         cal_rob.kinect.f_robot_camera) = cm
+         cal_rob.kinect.f_robot_camera) = cm[:4]
+
+        # Use custom parameter to update the camera intrinsics
+        cal_rob.kinect.focal_length = cal_rob.kinect_focal_length + ad[0, 0] * 10
+        cal_rob.kinect.center_point = cal_rob.kinect_center_point + ad[[1, 2], 0] * 10
+        cal_rob.kinect.distortion = cal_rob.kinect_distortion + ad[3, 0]
 
         distort = True
         u_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f[i_pole], distort=distort)[:, ::-1]
@@ -206,13 +213,22 @@ def build_objective_cal_marker_image(q, t,
         d_right = t_right - u_right
         d_left = t_left - u_left
         d = np.concatenate((d_pole, d_right, d_left), axis=0)
-        # obj = np.sum(d ** 2)
-        # obj = np.sum(d_right**2) + np.sum(d_left**2)
-        obj = np.sum(d_left**2)
-        print(obj)
 
-        if cal_par.x_weighting != 0:
-            obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
+        # from wzk.mpl import new_fig
+        # fig, ax = new_fig()
+        # ax.plot(*d_pole.T, 'o', color='red')
+        # ax.plot(*d_right.T, 'x', color='green')
+        # ax.plot(*d_left.T, 's', color='blue')
+
+        # obj = np.sum(d ** 2)
+        obj = np.mean(d_pole**2) + np.mean(d_right**2) + np.mean(d_left**2)
+        # obj =
+        # obj = np.sum(d_right**2) + np.sum(d_left**2)
+        # obj = np.sum(d_right**2)
+        # print(obj)
+
+        # if cal_par.x_weighting != 0:
+        #     obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
             # stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)

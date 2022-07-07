@@ -305,10 +305,14 @@ def define_kinect(verbose=0):
     if verbose > 0:
         pass
 
+    focal_length = 523.1053,
+    center_point = np.array([323.9319, 244.0806])
+    distortion = 0.023217
+
     return CameraOnRobot(name='KINECT',
-                         focal_length=523.1053,
-                         center_point=np.array([323.9319, 244.0806]),
-                         distortion=0.023217,
+                         focal_length=focal_length,
+                         center_point=center_point,
+                         distortion=distortion,
                          frustum=np.deg2rad([43, 57]),
                          resolution=(640, 480),
                          threshold_frustum=np.deg2rad(25),

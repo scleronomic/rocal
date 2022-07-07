@@ -12,6 +12,23 @@ file_right = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_20_k
 file_left = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left/paths_20_kinect-left-1657118908-measurements"
 
 
+def combine_measurements():
+    file_pole20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-pole-1657122658-measurements.npy"
+    file_pole50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-pole-1657128676-measurements.npy"
+
+    file_right20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-right-1657119419-measurements.npy"
+    file_right50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-right-1657126485-measurements.npy"
+
+    file_left20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-left-1657118908-measurements.npy"
+    file_left50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-left-1657121972-measurements.npy"
+    file_right = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-left-1657027137-measurements.npy"
+
+    a = np.load(file_left20, allow_pickle=True)
+    b = np.load(file_left50, allow_pickle=True)
+    c = np.concatenate((a[:-1], b[:-1]), axis=0)
+    np.save(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", c)
+
+
 def pkt_list2dict_list(file):
     ardx.require("autocalib.detect-marker-ard.marker-detector-result-packets")
     ardx.require("robotfusion.kinect-to-ardx.kinect-packets")
@@ -109,8 +126,36 @@ def pkt_list2dict_list_all():
             pkt_list2dict_list(f'{directory}/{file}')
 
 
+
+# pass
+def copy_marker_txt():
+
+    from wzk import list_directories, copy
+    directory_wink_do = '/home/wink_do/public/autocalib/marker_detections/'
+    directory_tenh_jo = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/{mode}"
+    dirs = list_directories(directory_wink_do)
+
+    print(dirs)
+    for d in dirs:
+
+        if 'pole' in d:
+            mode = 'right'
+        elif 'right' in d:
+            mode = 'left'
+        elif 'left' in d:
+            mode = 'pole'
+        else:
+            raise ValueError('mode not found')
+
+        file_a = f"{directory_wink_do}/{d}/marker.txt"
+        file_b = f"{directory_tenh_jo.format(mode)}/{d}/marker.txt"
+
+        copy(src=file_a, dst=file_b)
+
+
 if __name__ == '__main__':
-    pkt_list2dict_list_all()
+    copy_marker_txt()
+    # pkt_list2dict_list_all()
 
     # from matplotlib import pyplot as plt
     #

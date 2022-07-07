@@ -52,10 +52,10 @@ def torque_compliance2dh(torque, dh, el, include_beta=False):
 
 
 def kinematic(cal_rob,
-              q, dh, el, ma, cm):
+              q, dh, el, ma, cm, ad):
 
     if cal_rob.add_nominal_offsets:
-        dh, el, ma, cm = offset_nominal_parameters(cal_rob=cal_rob, dh=dh, el=el, ma=ma, cm=cm)
+        dh, el, ma, cm, ad = offset_nominal_parameters(cal_rob=cal_rob, dh=dh, el=el, ma=ma, cm=cm, ad=ad)
 
     if cal_rob.use_imu:
         imu, q = np.split(q, [3], axis=-1)
@@ -69,7 +69,9 @@ def kinematic(cal_rob,
         dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, el=el, ma=ma)
         f = cal_rob.get_frames_dh(q=q, dh=dh_trq)
 
-    return f, cm, dh_trq
+    return (f,
+            (dh, el, ma, cm, ad),
+            dh_trq)
 
 
 def create_wrapper_kinematic(cal_rob, x_wrapper=None,
@@ -139,7 +141,6 @@ def calibrate(cal_rob, cal_par, x0_noise,
               q_cal, t_cal, q_test, t_test,
               obj_fun=build_objective_cal_marker,
               verbose=1):
-
     n, x_bool_dict = get_x_bool_dict(cal_rob=cal_rob)
 
     if x0_noise is None or x0_noise == 0:
