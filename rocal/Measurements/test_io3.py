@@ -105,6 +105,7 @@ def pkt_list2dict_list_all():
     for sub_directory in sub_directories:
         directory = f'{main_directory}/{sub_directory}'
         for file in list_directories(directory):
+            print(f'{directory}/{file}')
             pkt_list2dict_list(f'{directory}/{file}')
 
 

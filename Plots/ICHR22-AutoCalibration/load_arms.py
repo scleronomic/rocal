@@ -1,6 +1,6 @@
 import numpy as np
 
-from wzk import new_fig
+from wzk.mpl import new_fig, set_style, set_borders, save_fig
 
 from rokin.Robots import Justin19
 from rokin.Vis.robot_3d import animate_path
@@ -33,9 +33,10 @@ robot = Justin19()
 
 # animate_path(q=q, robot=)
 
-
-
-ax = plot_q_configurations(ax=None, q=q_r[:, 3:10], limits=robot.limits[3:10, :], marker='o', color='red', zorder=10)
+set_borders(left=0.13, right=0.97, bottom=0.25, top=0.95)
+set_style(s=('ieee'))
+fig, ax = new_fig(width='ieee1c', height=1.5)
+ax = plot_q_configurations(ax=ax, q=q_r[:, 3:10], limits=robot.limits[3:10, :], marker='o', color='red', zorder=10)
 # plot_q_configurations(q_l[:, 10:17], limits=robot.limits[10:17, :], marker='o')
 
 
@@ -45,3 +46,5 @@ i = np.random.choice(np.arange(len(q10000)), size=1000, replace=False)
 q_new = q10000[i]
 
 plot_q_configurations(ax=ax, q=q_new[:, 3:10], limits=robot.limits[3:10, :], marker='o', alpha=0.1, color='blue', zorder=1)
+
+save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION}/{mode}_q_configurations", formats='pdf')
