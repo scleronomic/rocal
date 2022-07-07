@@ -139,11 +139,11 @@ def copy_marker_txt():
     for d in dirs:
 
         if 'pole' in d:
-            mode = 'Right'
-        elif 'right' in d:
-            mode = 'Left'
-        elif 'left' in d:
             mode = 'Pole'
+        elif 'right' in d:
+            mode = 'Right'
+        elif 'left' in d:
+            mode = 'Left'
         else:
             raise ValueError('mode not found')
 
