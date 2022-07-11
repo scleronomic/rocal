@@ -1,7 +1,7 @@
 import numpy as np
 
 from wzk.numpy2 import object2numeric_array
-
+from wzk import print_dict
 from mopla.Planner.ardx2 import ardx, pkt2dict
 
 from rocal.definitions import ICHR22_AUTOCALIBRATION
@@ -18,11 +18,20 @@ def pkt_list2dict_list(file):
     vicon = ardx.read_recorder_file(file, "vicon", "vicon_tracker_packet")
     assert len(torso) == len(vicon)
 
+    # name = vicon[0]
+    # print(ardx.to_string(vicon[2].targets[1].name))
+    # print(ardx.to_string(vicon[2].targets[1].f_global_target))
+    # dir(vicon[2].targets[1])
+    #
+    # v = ardx.numpy_view(vicon[2].targets[1].name)
+    # ''.join(chr(vv) for vv in v[v != 0])
+    #
+    # dir(vicon[2])
     d = []
     for i in range(len(torso)):
         d.append(dict(vicon=pkt2dict(vicon[i]),
                       torso=pkt2dict(torso[i])))
-        print(d[-1])
+        print_dict(d[-1])
 
     np.save(file, arr=d)
 
