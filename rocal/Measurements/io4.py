@@ -15,7 +15,7 @@ def pkt_list2dict_list(file):
     ardx.require("vicon-to-ardx")
 
     torso = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
-    vicon = ardx.read_recorder_file(file, "vicon", "vicon_monitor_packet")
+    vicon = ardx.read_recorder_file(file, "vicon", "vicon_tracker_packet")
     assert len(torso) == len(vicon)
 
     d = []
