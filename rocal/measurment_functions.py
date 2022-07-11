@@ -37,7 +37,7 @@ def build_objective_cal_marker(q, t,
 
         t2 = cm[0] @ f[:, cal_rob.cm_f_idx, :, :] @ cm[1:]
 
-        obj = measure_frame_difference(frame_a=t2, frame_b=t, weighting=cal_par.f_weighting,
+        obj = measure_frame_difference(frame_a=t2, frame_b=t, weighting=cal_par.t_weighting,
                                        lambda_trans=cal_par.lambda_trans, lambda_rot=cal_par.lambda_rot)
 
         if cal_par.x_weighting != 0:
@@ -60,8 +60,8 @@ def build_objective_cal_marker(q, t,
             #
             #
             # print('dd', dd.mean())
+            print('verbose', verbose)
             stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
-            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=3)  # verbose-1)
             return stats, obj
 
         return obj
@@ -130,7 +130,6 @@ def build_objective_cal_touch(q, t,
     def objective(x, verbose=0):
         (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
 
-
         d = _cal_touch(f=f, pairs=pairs, cm=cm, cal_rob=cal_rob)
 
         obj = lqql_basin(x=d * 1000, a=-2.5, b=-0.5, eps=0.5)  # [mm]
@@ -156,7 +155,7 @@ def build_objective_cal_joints(q, t,
 
     def objective(x, verbose=0):
 
-        (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
+        (f, _, dh_trq) = kin_fun(q=q, x=x)
 
         q_delta = dh_trq[:, :, 1] - cal_rob.dh[np.newaxis, :, 1]
         q_delta = np.delete(q_delta, 3, axis=1)
@@ -193,7 +192,6 @@ def build_objective_cal_marker_image(q, t,
 
     def objective(x, verbose=0):
         # x = np.random.uniform(-0.001, +0.001, size=x.shape)
-        # print(x)
         (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
 
         (cal_rob.marker_pole.f_robot_marker,
@@ -207,23 +205,28 @@ def build_objective_cal_marker_image(q, t,
         cal_rob.kinect.distortion = cal_rob.kinect_distortion + ad[3, 0]
 
         distort = True
-        u_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f[i_pole], distort=distort)[:, ::-1]
-        u_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f[i_right], distort=distort)[:, ::-1]
-        u_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f[i_left], distort=distort)[:, ::-1]
+        u_pole, p_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f[i_pole], distort=distort)
+        u_right, p_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f[i_right], distort=distort)
+        u_left, p_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f[i_left], distort=distort)
+        u_pole, u_right, u_left = u_pole[..., ::-1], u_right[..., ::-1], u_left[..., ::-1]
 
         d_pole, d_right, d_left = 0, 0, 0
+        d_pole2, d_right2, d_left2 = 0, 0, 0
         d = np.zeros((0, 2))
         if i_pole.size > 0:
             d_pole = t_pole - u_pole
-            d = np.concatenate((d, d_pole), axis=0)
+            d = np.concatenate((d, d_pole.copy()), axis=0)
+            d_pole2 = d_pole  # * p_pole[:, 2:]
 
         if i_right.size > 0:
             d_right = t_right - u_right
-            d = np.concatenate((d, d_right), axis=0)
+            d = np.concatenate((d, d_right.copy()), axis=0)
+            d_right2 = d_right  # * p_right[:, 2:]
 
         if i_left.size > 0:
             d_left = t_left - u_left
-            d = np.concatenate((d, d_left), axis=0)
+            d = np.concatenate((d, d_left.copy()), axis=0)
+            d_left2 = d_left  # * p_left[:, 2:]
 
         # from wzk.mpl import new_fig
         # fig, ax = new_fig()
@@ -232,7 +235,9 @@ def build_objective_cal_marker_image(q, t,
         # ax.plot(*d_left.T, 's', color='blue')
 
         # obj = np.sum(d ** 2)
-        obj = np.mean(d_pole**2) + np.mean(d_right**2) + np.mean(d_left**2)
+        obj = (cal_par.t_weighting[0] * np.mean(d_pole2**2) +
+               cal_par.t_weighting[1] * np.mean(d_right2**2) +
+               cal_par.t_weighting[2] * np.mean(d_left2**2))
         # obj =
         # obj = np.sum(d_right**2) + np.sum(d_left**2)
         # obj = np.sum(d_right**2)
@@ -242,7 +247,32 @@ def build_objective_cal_marker_image(q, t,
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
-            # stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
+            from wzk.mpl import new_fig
+
+            # fig, ax = new_fig(n_rows=3, share_y=True)
+            # style = dict(bins=30, range=(0, 1.5), density=True)
+            # ax[0].hist(np.linalg.norm(p_pole, axis=-1), label='pole', color='cyan', **style)
+            # ax[1].hist(np.linalg.norm(p_right, axis=-1), label='right', color='red', **style)
+            # ax[2].hist(np.linalg.norm(p_left, axis=-1), label='left', color='blue', **style)
+            # ax[0].legend()
+            # ax[1].legend()
+            # ax[2].legend()
+
+            fig, ax = new_fig(n_rows=4, share_x=True, share_y=True)
+            style = dict(ls='', marker='o')
+            ax[0].plot(np.linalg.norm(p_pole, axis=-1), np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
+            ax[1].plot(np.linalg.norm(p_right, axis=-1), np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
+            ax[2].plot(np.linalg.norm(p_left, axis=-1), np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
+            ax[3].plot(np.linalg.norm(p_pole, axis=-1), np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
+            ax[3].plot(np.linalg.norm(p_right, axis=-1), np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
+            ax[3].plot(np.linalg.norm(p_left, axis=-1), np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
+            ax[0].legend()
+            ax[1].legend()
+            ax[2].legend()
+            ax[3].legend()
+            ax[3].set_xlim([0, 1.5])
+            ax[3].set_ylim([0, 15])
+
             return d, obj
             # return stats, obj
 

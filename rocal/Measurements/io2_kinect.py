@@ -29,25 +29,7 @@ def combine_measurements():
     np.save(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", c)
 
 
-def pkt_list2dict_list(file):
-    ardx.require("autocalib.detect-marker-ard.marker-detector-result-packets")
-    ardx.require("robotfusion.kinect-to-ardx.kinect-packets")
-    ardx.require("monitor.torso-monitor-packets")
 
-    rgb = ardx.read_recorder_file(file, "rgb-kinect", "kinect_rgb_packet")
-    marker = ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
-    torso = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
-    base = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
-    assert len(rgb) == len(marker) == len(torso) == len(base)
-
-    d = []
-    for i in range(len(rgb)):
-        d.append(dict(rgb=pkt2dict(rgb[i]),
-                      marker=pkt2dict(marker[i]),
-                      torso=pkt2dict(torso[i]),
-                      base=pkt2dict(base[i])))
-
-    np.save(file, arr=d)
 
 
 def load_wrapper(d):
@@ -67,17 +49,6 @@ def plot_all_images(d):
             plt.plot(*xy, marker='x', color='red', markersize=30, lw=5)
         plt.plot(*u0[i], marker='x', color='blue', markersize=30, lw=5)
         save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION}/{i}_marker", formats='png')
-
-
-def get_qus(d, mode='commanded'):
-    d = load_wrapper(d)
-    q = get_qs(d, mode=mode)
-    u = get_markers(d)
-    b = np.array([False if ui is False else True for ui in u])
-
-    q, u = q[b], u[b]
-    u = object2numeric_array(u)
-    return q, u
 
 
 def pkt_list2dict_list_all():

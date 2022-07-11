@@ -16,19 +16,20 @@ dh_bool_torso = np.array([[12, 9, 12, 3],   # NEW 11 | 8 from redundancy analysi
                           [3, 2, 2, 2],
                           [8, 2, 12, 1],
                           [8, 2, 12, 2]]) < 8
+dh_bool_torso = np.zeros_like(dh_bool_torso, dtype=bool)
 
 
 dh_bool_arm = np.array([[3, 1, 3, 3],  # 3 -> 11
                         [3, 2, 3, 3],
-                        [12, 1, 3, 3],   # 12 justin ellen
+                        [12, 8, 3, 3],   # 12 justin ellen
                         [4, 2, 3, 2],
                         [12, 3, 3, 2],
                         [3, 3, 3, 3],
-                        [11, 3, 11, 3]]) < 8
+                        [11, 8, 11, 3]]) < 8
 
 
-dh_bool_head = np.array([[1, 1, 1, 1],
-                         [0, 1, 1, 1]], dtype=bool)  # TODO Not tuned yet
+dh_bool_head = np.array([[0, 1, 0, 1],
+                         [0, 0, 0, 0]], dtype=bool)  # TODO Not tuned yet
 # dh_bool_head = np.zeros_like(dh_bool_head, dtype=bool)
 
 el_bool_torso = np.array([[0, 0, 0],

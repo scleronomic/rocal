@@ -1,7 +1,6 @@
 import numpy as np
 
-
-from wzk import spatial, files, math2, printing, strings, pyOpt2, multiprocessing2
+from wzk import pyOpt2, spatial, files, math2, printing, strings, multiprocessing2
 
 from rokin import forward
 
@@ -163,7 +162,7 @@ def calibrate(cal_rob, cal_par, x0_noise,
         t_test = t_cal
 
     obj_fun_test = obj_fun(q=q_test, t=t_test)
-    stats, _ = obj_fun_test(x, verbose=min(1, verbose))
+    stats, _ = obj_fun_test(x, verbose=max(1, verbose))
 
     return x, stats
 

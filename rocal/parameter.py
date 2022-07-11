@@ -4,10 +4,10 @@ from wzk import spatial
 
 
 class Parameter:
-    def __init__(self, x_weighting=0):
+    def __init__(self, x_weighting=0., t_weighting=1.):
         # Justin, two marker
         self.lambda_trans, self.lambda_rot = 1000, 0  # was 100
-        self.f_weighting = [1, 1]
+        self.t_weighting = t_weighting
 
         self.x_weighting = x_weighting
         self.x_nominal = 0
@@ -16,10 +16,12 @@ class Parameter:
         self.mu_sigma = 0  #
 
         self.method = 'PyOpt - SLSQP'  # way faster
-        self.options = {'maxiter': 200,
+        self.options = {'maxiter': 300,
                         'disp': True,
-                        'ftol': 1e-5,
-                        'sens_step': 1e-4}
+                        'ftol': 1e-9,
+                        'sens_step': 1e-5,
+                        'sens_type': 'fd',  # 'fd' or 'cs
+                        'pll_type': 'POA'}  # 'POA' or None  | I measured no speed difference
 
 
 def get_active_parameters(cal_rob):

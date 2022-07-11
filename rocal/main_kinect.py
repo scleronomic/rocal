@@ -1,3 +1,4 @@
+
 import numpy as np
 
 from wzk import new_fig, save_fig
@@ -5,10 +6,10 @@ from wzk import round_dict, print_dict
 
 from rokin.Robots import Justin19
 
-from rocal.calibration import calibrate, create_wrapper_kinematic
 from rocal.Robots import Justin19CalKinect
 from rocal.parameter import Parameter, unwrap_x
-from rocal.Measurements.test_io3 import get_qus
+from rocal.Measurements.from_ardx_packets import get_qt_kinect
+from rocal.calibration import calibrate, create_wrapper_kinematic
 from rocal.definitions import ICHR22_AUTOCALIBRATION, ICHR22_AUTOCALIBRATION_FIGS
 
 
@@ -22,9 +23,9 @@ def get_qt(n, mode):
     file_right = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-right-measurements.npy", allow_pickle=True)
     file_left = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", allow_pickle=True)
 
-    q_pole, t_pole = get_qus(d=file_pole, mode=mode)
-    q_right, t_right = get_qus(d=file_right, mode=mode)
-    q_left, t_left = get_qus(d=file_left, mode=mode)
+    q_pole, t_pole = get_qt_kinect(d=file_pole, mode=mode)
+    q_right, t_right = get_qt_kinect(d=file_right, mode=mode)
+    q_left, t_left = get_qt_kinect(d=file_left, mode=mode)
 
     q_pole, t_pole = q_pole[:n], t_pole[:n]
     q_right, t_right = q_right[:n], t_right[:n]
@@ -147,21 +148,21 @@ def test_vicon(dkmca, x):
 
 def main():
     mode = 'commanded'  # 'commanded' or 'measured'
-    dkmca = 'c00c0'
-    x_weighting = 100
+    dkmca = 'cc0c0'
+    x_weighting = 10
     q, t, l = get_qt(n=200, mode=mode)
 
-    cal_par = Parameter(x_weighting=x_weighting)
+    cal_par = Parameter(x_weighting=x_weighting, t_weighting=1000000*np.array([1, 1, 1]))
     cal_rob = Justin19CalKinect(dkmca=dkmca, add_nominal_offsets=True, use_imu=False, el_loop=1)
 
-    x, stats = calibrate(q_cal=q, t_cal=t, q_test=None, t_test=None, verbose=1, obj_fun='marker_image',
+    x, stats = calibrate(q_cal=q, t_cal=t, q_test=None, t_test=None, verbose=3, obj_fun='marker_image',
                          cal_par=cal_par, cal_rob=cal_rob, x0_noise=0.0)
 
     x0 = x.copy()
 
     x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
 
-    x = round_dict(d=x, decimals=4)
+    x = round_dict(d=x, decimals=5)
     print_dict(x)
 
     dh0 = Justin19().dh

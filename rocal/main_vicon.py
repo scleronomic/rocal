@@ -1,50 +1,67 @@
 import numpy as np
-from wzk import spatial
+from wzk import spatial, train_test_split
 
 from rocal.calibration import calibrate
 from rocal.Measurements.io2 import get_q
+from rocal.Measurements.from_ardx_packets import get_qt_vicon
+
 from rocal.Robots import Justin19CalVicon
 from rocal.Vis.plotting import print_stats2
 from rocal.parameter import Parameter, unwrap_x
 
-from rocal.definitions import ICHR20_CALIBRATION
+from rocal.definitions import ICHR20_CALIBRATION, ICHR22_AUTOCALIBRATION
 
 # FINDING 10000 test configurations is easily enough to have a small variance
 
 
-def search_world_frame(_cal_rob, _cal_par,
-                       q, t):
+def search_world_frame(q, t):
     """
     its hard / impossible to find the correct world frame if the initial guess is far off
        -> try multi start and safe the good fits
     """
+    cal_rob = Justin19CalVicon(dkmca='000c0', add_nominal_offsets=True, use_imu=False, el_loop=1)
+    cal_par = Parameter(x_weighting=0)
+
     n = 100
     threshold = 0.1  # m
     for i in range(n):
-        _x, _stats = calibrate(q_cal=q, t_cal=t, q_test=q, t_test=t, x0_noise=0.1, verbose=0,
-                               cal_rob=_cal_rob, cal_par=_cal_par)
+        _x, _stats = calibrate(q_cal=q, t_cal=t, q_test=q, t_test=t, x0_noise=10., verbose=1,
+                               cal_rob=cal_rob, cal_par=cal_par)
         if _stats[0, 0, 0] < threshold:
-            print(_stats[:, 0, 0].meand(axis=0))
+            print(_stats[:, 0, 0].mean(axis=0))
             print(spatial.trans_rotvec2frame(trans=_x[:3], rotvec=_x[3:6]))
+            return _x, _stats
 
 
 if __name__ == '__main__':
 
     cal_par = Parameter(x_weighting=0)
-    cal_rob = Justin19CalVicon(dkmca='000c0', add_nominal_offsets=True, use_imu=False, el_loop=1)
+    cal_rob = Justin19CalVicon(dkmca='ccfc0', add_nominal_offsets=True, use_imu=False, el_loop=1)
 
-    directory = ICHR20_CALIBRATION + '/Measurements/600'
-    (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
+    # directory = ICHR20_CALIBRATION + '/Measurements/600'
+    # (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
 
-    x, stats = calibrate(q_cal=q0_cal, t_cal=t_cal, q_test=q0_test, t_test=t_test, verbose=1,
+    file = f"{ICHR22_AUTOCALIBRATION}/Vicon/random_poses_smooth_100-1657536656-measurements.npy"
+    q, t = get_qt_vicon(file=file)
+    i = np.array([69,  70,  45,  84,  65,  28,  98,  51,  85, 100])
+    q, t = np.delete(q, i, axis=0), np.delete(t, i, axis=0)
+    (q0_cal, t_cal), (q0_test, t_test) = train_test_split(q, t, split=-1, shuffle=False)
+
+    from wzk import tic, toc
+
+    tic()
+    x, stats = calibrate(q_cal=q0_cal, t_cal=t_cal, q_test=q0_test, t_test=t_test, verbose=4,
                          cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
+    toc()
 
+    # search_world_frame(q, t)
     # x, stats = calibrate(q_cal=q0_cal, t_cal=q_cal, q_test=q0_test, t_test=q_cal, verbose=1,
     #                      obj_fun='joints',
     #                      cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
     print_stats2(stats)
-    x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
+    # x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True )
 
+    # print(x['cm'])
 
     # from rokin.Robots import Justin19
     # robot = Justin19()
@@ -71,29 +88,3 @@ if __name__ == '__main__':
     #     ax[i-3].set_xlabel('|q_c - q_m| [Degree]')
     #     ax[i-3].hist(np.rad2deg(np.abs(q0_cal - q_cal))[:, i], color='red', alpha=0.3)
     #     ax[i-3].hist(stats[:, i], color='blue', alpha=0.3)
-
-    # only torso
-    # [0.00000000e+00  1.01071523e-02 - 5.72213004e-03  9.57020798e-05]
-    # [0.00000000e+00 - 1.25405155e-02 - 8.65148378e-03 - 2.41562700e-07]
-
-    # with all
-    # [0.00000000e+00  1.01014076e-02 - 5.73770775e-03 - 4.38804487e-05]
-    # [0.00000000e+00 - 1.25391361e-02 - 8.64104949e-03 - 5.59791538e-07]
-
-    # print(stats)
-    # #
-    # save_file = 'final_without_cp'
-    # save_file = f'{directory}/results/{save_file}.npy'
-    # x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
-    # np.save(save_file, (x, stats))
-    # #
-    # # x0 = x
-
-    # f0 = kinematic(cal_rob=cal_rob, q=q0, **xn)
-
-    # x = wrap_x(x=x, cal_rob=cal_rob)
-    # print(evaluate_x(cal_rob=cal_rob, x_list=[x], squared=False, q=q0_test, t=t_test))
-    # tic()
-    # x, stats = change_tuple_order(calibrate2(q_cal=q_cal, t_cal=t_cal, q_test=q_test, t_test=t_test, c=c, verbose=1)
-    #                               for _ in range(20))
-    # toc()

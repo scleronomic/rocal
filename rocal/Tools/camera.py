@@ -77,7 +77,7 @@ class Camera:
 
         f_camera_marker = spatial.invert(f_world_camera) @ f_world_marker
         p_camera_marker = f_camera_marker[..., :-1, -1]
-        return self.project2image(p=p_camera_marker, distort=distort)
+        return self.project2image(p=p_camera_marker, distort=distort), p_camera_marker
 
     def check_orientation(self, robot, marker, q):
         """
