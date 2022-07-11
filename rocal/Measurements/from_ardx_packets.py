@@ -111,10 +111,10 @@ def pkt_list2dict_list_kinect(file):
     ardx2.ardx.require("monitor.torso-monitor-packets")
 
     rgb = ardx2.ardx.read_recorder_file(file, "rgb-kinect", "kinect_rgb_packet")
-    marker = ardx2.ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
-    marker_corrected = get_corrected_marker_from_txt(file=file)
     torso = ardx2.ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     base = ardx2.ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
+    marker = ardx2.ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
+    marker_corrected = get_corrected_marker_from_txt(file=file, torso=torso)
     assert len(rgb) == len(marker) == len(torso) == len(base)
 
     d = []
