@@ -12,7 +12,7 @@ file = "/volume/USERSTORE/tenh_jo/Data/Calibration/TorsoRightLeft/0/random_poses
 
 def pkt_list2dict_list(file):
     ardx.require("monitor.torso-monitor-packets")
-    ardx.require("vicon-to-ardx.vicon_packets")
+    ardx.require("vicon-to-ardx.vicon-packets")
 
     torso = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     vicon = ardx.read_recorder_file(file, "vicon", "vicon_tracker_packet")
