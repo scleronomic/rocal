@@ -1,14 +1,14 @@
-
 import numpy as np
 
 from wzk import new_fig, save_fig
-from wzk import round_dict, print_dict
+from wzk import round_dict, print_dict, object2numeric_array
 
 from rokin.Robots import Justin19
 
 from rocal.Robots import Justin19CalKinect
 from rocal.parameter import Parameter, unwrap_x
-from rocal.Measurements.from_ardx_packets import get_qt_kinect
+from rocal.Measurements.from_ardx_packets import get_qt_kinect, get_marker_list
+from rocal.Measurements.io2_kinect import plot_all_images
 from rocal.calibration import calibrate, create_wrapper_kinematic
 from rocal.definitions import ICHR22_AUTOCALIBRATION, ICHR22_AUTOCALIBRATION_FIGS
 
@@ -17,27 +17,60 @@ from rocal.definitions import ICHR22_AUTOCALIBRATION, ICHR22_AUTOCALIBRATION_FIG
 # But if we calibrate the pixel model [corresponding to an error of 0.8 pixel] we get a tracker error of 50mm.
 
 
-def get_qt(n, mode):
+def compare_image_modes():
+
+    file = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-pole-1657128676-measurements.npy", allow_pickle=True)
+    file = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-right-1657126485-measurements.npy", allow_pickle=True)
+    # file = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-left-1657121972-measurements.npy", allow_pickle=True)
+    plot_all_images(file)
+
+    t_corrected = get_marker_list(d=file, mode='corrected')
+    b_corrected = np.array([False if ti is False else True for ti in t_corrected])
+    t_corrected2 = np.zeros((len(t_corrected), 2))
+    t_corrected2[b_corrected, :] = object2numeric_array(t_corrected[b_corrected])
+
+    t_normal = get_marker_list(d=file, mode='normal')
+    b_normal = np.array([False if ti is False else True for ti in t_normal])
+    t_normal2 = np.zeros((len(t_corrected), 2))
+    t_normal2[b_normal, :] = object2numeric_array(t_normal[b_normal])
+
+    # fig, ax = new_fig(aspect=1)
+    # ax.plot(*t_corrected.T, color='blue', marker='o', ls='', label='corrected')
+    # ax.plot(*t_normal.T, color='red', marker='x', ls='', label='normal')
+    #
+    fig, ax = new_fig()
+    ax.plot(t_normal2[b_normal, 0], color='red', marker='x', markersize=10, ls='', label='normal')
+    ax.plot(t_normal2[b_normal, 1], color='red', marker='<', markersize=10, ls='')
+
+    ax.plot(t_corrected2[b_normal, 0], color='blue', marker='x', ls='', label='corrected')
+    ax.plot(t_corrected2[b_normal, 1], color='blue', marker='<', ls='')
+
+    d = t_normal2[b_normal] - t_corrected2[b_normal]
+
+
+def get_qt(n, q_mode, m_mode):
 
     file_pole = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-pole-1657128676-measurements.npy", allow_pickle=True)
-    file_right = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-right-measurements.npy", allow_pickle=True)
-    file_left = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", allow_pickle=True)
+    file_right = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-right-1657126485-measurements.npy", allow_pickle=True)
+    file_left = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-left-1657121972-measurements.npy", allow_pickle=True)
 
-    q_pole, t_pole = get_qt_kinect(d=file_pole, mode=mode)
-    q_right, t_right = get_qt_kinect(d=file_right, mode=mode)
-    q_left, t_left = get_qt_kinect(d=file_left, mode=mode)
+    q_pole, t_pole = get_qt_kinect(d=file_pole, q_mode=q_mode, m_mode=m_mode)
+    q_right, t_right = get_qt_kinect(d=file_right, q_mode=q_mode, m_mode=m_mode)
+    q_left, t_left = get_qt_kinect(d=file_left, q_mode=q_mode, m_mode=m_mode)
 
     q_pole, t_pole = q_pole[:n], t_pole[:n]
     q_right, t_right = q_right[:n], t_right[:n]
     q_left, t_left = q_left[:n], t_left[:n]
 
-    i_delete_pole = np.array([28,  29,  61,  92,  93,  94,  95,  96,  98, 147])
-    i_delete_right = np.array([84,  85,  86,  88,  89,  90,  91, 105, 106, 132])
-    i_delete_left = np.array([14,  15,  35,  59,  74, 123, 158, 159, 181, 182])
-
-    q_pole, t_pole = np.delete(q_pole, i_delete_pole, axis=0), np.delete(t_pole, i_delete_pole, axis=0)
-    q_right, t_right = np.delete(q_right, i_delete_right, axis=0), np.delete(t_right, i_delete_right, axis=0)
-    q_left, t_left = np.delete(q_left, i_delete_left, axis=0), np.delete(t_left, i_delete_left, axis=0)
+    # i_delete_pole = np.array([28,  29,  61,  92,  93,  94,  95,  96,  98, 147])
+    # i_delete_right = np.array([84,  85,  86,  88,  89,  90,  91, 105, 106, 132])
+    # i_delete_left = np.array([14,  15,  35,  59,  74, 123, 158, 159, 181, 182])
+    # i_delete_pole = np.array([52, 54, 57, 96, 97, 98, 99, 117, 142, 184])
+    # i_delete_right = np.array([11, 24, 67, 85, 87, 96, 105, 180, 182, 185])
+    # i_delete_left = np.array([7, 20, 23, 59, 60, 77, 85, 87, 179, 180])
+    # q_pole, t_pole = np.delete(q_pole, i_delete_pole, axis=0), np.delete(t_pole, i_delete_pole, axis=0)
+    # q_right, t_right = np.delete(q_right, i_delete_right, axis=0), np.delete(t_right, i_delete_right, axis=0)
+    # q_left, t_left = np.delete(q_left, i_delete_left, axis=0), np.delete(t_left, i_delete_left, axis=0)
 
     q = np.concatenate((q_pole, q_right, q_left), axis=0)
     l = np.cumsum([0, len(q_pole), len(q_right), len(q_left)])
@@ -147,16 +180,14 @@ def test_vicon(dkmca, x):
 
 
 def main():
-    mode = 'commanded'  # 'commanded' or 'measured'
-    dkmca = 'cc0c0'
-    x_weighting = 10
-    q, t, l = get_qt(n=200, mode=mode)
+    dkmca = '000c0'
+    q, t, l = get_qt(n=30, q_mode='commanded', m_mode='corrected')
 
-    cal_par = Parameter(x_weighting=x_weighting, t_weighting=1000000*np.array([1, 1, 1]))
-    cal_rob = Justin19CalKinect(dkmca=dkmca, add_nominal_offsets=True, use_imu=False, el_loop=1)
+    cal_par = Parameter(x_weighting=10000, t_weighting=1*np.array([0, 0, 1]))
+    cal_rob = Justin19CalKinect(dkmca=dkmca, add_nominal_offsets=True, use_imu=False, el_loop=0)
 
     x, stats = calibrate(q_cal=q, t_cal=t, q_test=None, t_test=None, verbose=3, obj_fun='marker_image',
-                         cal_par=cal_par, cal_rob=cal_rob, x0_noise=0.0)
+                         cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
 
     x0 = x.copy()
 

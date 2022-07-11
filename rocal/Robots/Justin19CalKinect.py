@@ -69,12 +69,12 @@ class Justin19CalKinect(Justin19, RobotCal):
         # DH
         self.n_dh = len(self.dh)
         self.dh_bool_c = np.vstack((dh_bool_torso, dh_bool_arm, dh_bool_arm, dh_bool_head))
-        self.dh = justin19_par.DH4
+        # self.dh = justin19_par.DH4
 
         # EL
         self.n_el = len(self.dh)
         self.el = np.zeros((self.n_el, 3))
-        self.el = justin19_par.CP3 * 100
+        # self.el = justin19_par.CP3 * 100
         self.el_bool_c = np.vstack((el_bool_torso, el_bool_arm, el_bool_arm, el_bool_head))
 
         # MA

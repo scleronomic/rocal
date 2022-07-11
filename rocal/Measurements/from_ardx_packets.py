@@ -27,20 +27,23 @@ def get_q_list(d, mode='commanded'):
 
 
 # Kinect
-def get_marker(di):
-    if di['marker']['num'] != 1:
+def get_marker(di, mode='normal'):
+    mode_dict = dict(corrected='marker_corrected',
+                     normal='marker')
+    marker_mode = mode_dict[mode]
+    if di[marker_mode]['num'] != 1:
         return False
     else:
         return np.array([di['marker']['detections'][0]['y'], di['marker']['detections'][0]['x']])
 
 
-def get_marker_list(d):
+def get_marker_list(d, mode='normal'):
     d = load_wrapper(d)
-    return np.array([get_marker(di) for di in d], dtype=object)
+    return np.array([get_marker(di=di, mode=mode) for di in d], dtype=object)
 
 
 def get_img(di):
-    img = di['rgb']['img']
+    img = ardx2.ardx.numpy_view(di['rgb']['img'])
     img = img.reshape(480, 640, 3)
     img = np.swapaxes(img, 0, 1)
     return img
@@ -78,10 +81,10 @@ def get_qt_vicon(file, mode='commanded'):
     return q, t
 
 
-def get_qt_kinect(d, mode='commanded'):
+def get_qt_kinect(d, q_mode='commanded', m_mode='corrected'):
     d = load_wrapper(d)
-    q = get_q_list(d, mode=mode)
-    t = get_marker_list(d)
+    q = get_q_list(d, mode=q_mode)
+    t = get_marker_list(d, mode=m_mode)
     b = np.array([False if ti is False else True for ti in t])
 
     q, t = q[b], t[b]

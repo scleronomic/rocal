@@ -30,13 +30,15 @@ def plot_all_images(d):
     from wzk.mpl import new_fig, save_fig, plt
     for i in range(len(d)):
         img = get_img(di=d[i])
-        xy = get_marker(di=d[i])
+        xy_n = get_marker(di=d[i], mode='normal')
+        xy_c = get_marker(di=d[i], mode='corrected')
 
         fig, ax = new_fig(aspect=1)
         plt.imshow(img, origin='lower')
-        if np.any(xy):
-            plt.plot(*xy, marker='x', color='red', markersize=30, lw=5)
-        plt.plot(*u0[i], marker='x', color='blue', markersize=30, lw=5)
+        if np.any(xy_n):
+            plt.plot(*xy_n, marker='x', color='red', markersize=30, lw=5)
+        if np.any(xy_c):
+            plt.plot(*xy_c[i], marker='x', color='blue', markersize=30, lw=5)
         save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION}/{i}_marker", formats='png')
 
 

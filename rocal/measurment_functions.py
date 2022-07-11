@@ -216,17 +216,17 @@ def build_objective_cal_marker_image(q, t,
         if i_pole.size > 0:
             d_pole = t_pole - u_pole
             d = np.concatenate((d, d_pole.copy()), axis=0)
-            d_pole2 = d_pole  # * p_pole[:, 2:]
+            d_pole2 = d_pole * p_pole[:, 2:]
 
         if i_right.size > 0:
             d_right = t_right - u_right
             d = np.concatenate((d, d_right.copy()), axis=0)
-            d_right2 = d_right  # * p_right[:, 2:]
+            d_right2 = d_right * p_right[:, 2:]
 
         if i_left.size > 0:
             d_left = t_left - u_left
             d = np.concatenate((d, d_left.copy()), axis=0)
-            d_left2 = d_left  # * p_left[:, 2:]
+            d_left2 = d_left * p_left[:, 2:]
 
         # from wzk.mpl import new_fig
         # fig, ax = new_fig()

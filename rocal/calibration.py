@@ -6,6 +6,7 @@ from rokin import forward
 
 from rocal.measurment_functions import meas_fun_dict, build_objective_cal_marker
 from rocal.parameter import offset_nominal_parameters, create_x_unwrapper, get_x_bool_dict
+from scipy.optimize import least_squares
 
 
 # Kinematic
@@ -154,6 +155,7 @@ def calibrate(cal_rob, cal_par, x0_noise,
     # Main
     cal_par.options['disp'] = verbose > 2
     x = pyOpt2.minimize_slsqp(fun=obj_fun_cal, x0=x0, options=cal_par.options, verbose=verbose-1)
+    # x = least_squares(fun=obj_fun_cal, x0=x0, method="trf").x
 
     # Post
     if q_test is None or t_test is None:

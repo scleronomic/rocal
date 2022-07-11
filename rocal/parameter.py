@@ -18,10 +18,10 @@ class Parameter:
         self.method = 'PyOpt - SLSQP'  # way faster
         self.options = {'maxiter': 300,
                         'disp': True,
-                        'ftol': 1e-9,
-                        'sens_step': 1e-5,
+                        'ftol': 1e-6,
+                        'sens_step': 1e-6,
                         'sens_type': 'fd',  # 'fd' or 'cs
-                        'pll_type': 'POA'}  # 'POA' or None  | I measured no speed difference
+                        'pll_type': None}  # 'POA' or None  | I measured no speed difference
 
 
 def get_active_parameters(cal_rob):
