@@ -92,7 +92,7 @@ def copy_marker_txt():
 if __name__ == '__main__':
     pass
 
-    # copy_marker_txt()
+    copy_marker_txt()
     # pkt_list2dict_list_all()
 
     # from matplotlib import pyplot as plt
