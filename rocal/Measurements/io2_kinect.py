@@ -2,7 +2,7 @@ import numpy as np
 
 
 from rocal.definitions import ICHR22_AUTOCALIBRATION
-from rocal.Measurements.from_ardx_packets import get_img, get_marker, pkt_list2dict_list
+from rocal.Measurements.from_ardx_packets import get_img, get_marker, pkt_list2dict_list_kinect
 
 file_pole = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Pole/paths_10_kinect-pole-1657117796-measurements"
 file_right = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_20_kinect-right-1657119419-measurements"
@@ -50,7 +50,7 @@ def pkt_list2dict_list_all():
         directory = f'{main_directory}/{sub_directory}'
         for file in list_directories(directory):
             print(f'{directory}/{file}')
-            pkt_list2dict_list(f'{directory}/{file}')
+            pkt_list2dict_list_kinect(file=f'{directory}/{file}')
 
 
 def copy_marker_txt():
