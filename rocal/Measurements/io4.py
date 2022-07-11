@@ -7,7 +7,7 @@ from mopla.Planner.ardx2 import ardx, pkt2dict
 from rocal.definitions import ICHR22_AUTOCALIBRATION
 
 
-file = "/volume/USERSTORE/tenh_jo/Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1657533295-measurements"
+file = "/volume/USERSTORE/tenh_jo/Data/Calibration/TorsoRightLeft/2/random_poses_smooth_100-1657536656-measurements"
 
 
 def pkt_list2dict_list(file):
