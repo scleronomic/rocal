@@ -1,11 +1,8 @@
 import numpy as np
 
-from wzk.numpy2 import object2numeric_array
-
-from mopla.Planner.ardx2 import ardx, pkt2dict
 
 from rocal.definitions import ICHR22_AUTOCALIBRATION
-#ardx.require("bcatch.imu-to-ard.imu-raw-packets")
+from rocal.Measurements.from_ardx_packets import get_img, get_marker, pkt_list2dict_list
 
 file_pole = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Pole/paths_10_kinect-pole-1657117796-measurements"
 file_right = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_20_kinect-right-1657119419-measurements"
@@ -29,16 +26,8 @@ def combine_measurements():
     np.save(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", c)
 
 
-
-
-
-def load_wrapper(d):
-    if isinstance(d, str):
-        d = np.load(d, allow_pickle=True)
-    return d
-
-
 def plot_all_images(d):
+    from wzk.mpl import new_fig, save_fig, plt
     for i in range(len(d)):
         img = get_img(di=d[i])
         xy = get_marker(di=d[i])
@@ -92,8 +81,8 @@ def copy_marker_txt():
 if __name__ == '__main__':
     pass
 
-    copy_marker_txt()
-    # pkt_list2dict_list_all()
+    # copy_marker_txt()
+    pkt_list2dict_list_all()
 
     # from matplotlib import pyplot as plt
     #

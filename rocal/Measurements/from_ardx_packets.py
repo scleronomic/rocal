@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from wzk import object2numeric_array
@@ -111,6 +112,7 @@ def pkt_list2dict_list_kinect(file):
 
     rgb = ardx2.ardx.read_recorder_file(file, "rgb-kinect", "kinect_rgb_packet")
     marker = ardx2.ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
+    marker_corrected = get_corrected_marker_from_txt(file=file)
     torso = ardx2.ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     base = ardx2.ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     assert len(rgb) == len(marker) == len(torso) == len(base)
@@ -119,33 +121,37 @@ def pkt_list2dict_list_kinect(file):
     for i in range(len(rgb)):
         d.append(dict(rgb=ardx2.pkt2dict(rgb[i]),
                       marker=ardx2.pkt2dict(marker[i]),
+                      marker_corrected=ardx2.pkt2dict(marker_corrected[i]),
                       torso=ardx2.pkt2dict(torso[i]),
                       base=ardx2.pkt2dict(base[i])))
 
     np.save(file, arr=d)
 
 
-def get_marker_dominik():
+def get_corrected_marker_from_txt(file, torso):
+    if not os.path.exists(f"{file}/marker.txt"):
+        return [None] * len(torso)
 
     from collections import defaultdict
     from collections import namedtuple
+
+    ardx2.ardx.require("monitor.torso-monitor-packets")
 
     Point = namedtuple('Point', 'x y score')
     ImgInfo = namedtuple('ImgInfo', 'm_time')
     Marker = namedtuple('Marker', 'num detections img_info')
 
-    with open("/home/wink_do/PycharmProjects/autocalib/tmp/paths_50_kinect-pole-1657128676-measurements/marker.txt", "r") as f:
+    with open(f"{file}/marker.txt", "r") as f:
         points_per_image = defaultdict(lambda: [])
         for line in f.readlines():
             data = line.split()
             points_per_image[int(data[0])].append(data)
 
-        new_marker_packets = []
-        for i in range(len(torso_packets)):
-            detections = []
-            for points in points_per_image[i]:
-                detections.append(Point(x=float(points[1]), y=float(points[2]), score=float(points[3])))
-            marker = Marker(num=len(detections), detections=detections, img_info=ImgInfo(m_time=torso_packets[i].m_time))
-            new_marker_packets.append(marker)
+    marker = []
+    for i in range(len(torso)):
+        detections = []
+        for points in points_per_image[i]:
+            detections.append(Point(x=float(points[1]), y=float(points[2]), score=float(points[3])))
+        marker.append(Marker(num=len(detections), detections=detections, img_info=ImgInfo(m_time=torso[i].m_time)))
 
-        marker_packets = new_marker_packets
+    return marker
