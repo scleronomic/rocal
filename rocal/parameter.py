@@ -4,16 +4,17 @@ from wzk import spatial
 
 
 class Parameter:
-    def __init__(self):
+    def __init__(self, x_weighting=0):
         # Justin, two marker
         self.lambda_trans, self.lambda_rot = 1000, 0  # was 100
         self.f_weighting = [1, 1]
 
-        self.x_weighting = 0
+        self.x_weighting = x_weighting
+        self.x_nominal = 0
 
         self.prior_sigma = 0.01  # 0.01  # was  0.01 for dummy
         self.mu_sigma = 0  #
-        
+
         self.method = 'PyOpt - SLSQP'  # way faster
         self.options = {'maxiter': 200,
                         'disp': True,
@@ -133,7 +134,7 @@ def get_active_parameters(cal_rob):
     elif ad == 'f':
         ad_bool = np.ones((n_ad, m_ad), dtype=bool)
     elif ad == 'c':
-        ad_bool = cal_rob.cm_bool_c
+        ad_bool = cal_rob.ad_bool_c
         assert ad_bool.shape == (n_ad, m_ad)
     else:
         raise ValueError(__error_string.format('ad', ad))
@@ -202,7 +203,7 @@ def wrap_x(x, cal_rob):
     return x
 
 
-def unwrap_x(cal_rob, x, add_nominal_offset=False):
+def unwrap_x(x, cal_rob, add_nominal_offset=False):
     n, x_bool_dict = get_x_bool_dict(cal_rob=cal_rob)
     x_unwrapper = create_x_unwrapper(**x_bool_dict)
     x = x_unwrapper(x)

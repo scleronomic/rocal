@@ -7,45 +7,22 @@ from mopla.Planner.ardx2 import ardx, pkt2dict
 from rocal.definitions import ICHR22_AUTOCALIBRATION
 #ardx.require("bcatch.imu-to-ard.imu-raw-packets")
 
-file_pole = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Pole/paths_10_kinect-pole-1657117796-measurements"
-file_right = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Right/paths_20_kinect-right-1657119419-measurements"
-file_left = "/volume/USERSTORE/tenh_jo/Data/Calibration/Kinect/Left/paths_20_kinect-left-1657118908-measurements"
-
-
-def combine_measurements():
-    file_pole20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-pole-1657122658-measurements.npy"
-    file_pole50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-pole-1657128676-measurements.npy"
-
-    file_right20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-right-1657119419-measurements.npy"
-    file_right50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-right-1657126485-measurements.npy"
-
-    file_left20 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_20_kinect-left-1657118908-measurements.npy"
-    file_left50 = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_50_kinect-left-1657121972-measurements.npy"
-    file_right = f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_10_kinect-left-1657027137-measurements.npy"
-
-    a = np.load(file_left20, allow_pickle=True)
-    b = np.load(file_left50, allow_pickle=True)
-    c = np.concatenate((a[:-1], b[:-1]), axis=0)
-    np.save(f"{ICHR22_AUTOCALIBRATION}/Measurements/Real/paths_70_kinect-left-measurements.npy", c)
+file = "/volume/USERSTORE/tenh_jo/Data/Calibration/TorsoLeftRight/0/random_poses_smooth_3-1657533295-measurements"
 
 
 def pkt_list2dict_list(file):
-    ardx.require("autocalib.detect-marker-ard.marker-detector-result-packets")
-    ardx.require("robotfusion.kinect-to-ardx.kinect-packets")
     ardx.require("monitor.torso-monitor-packets")
+    ardx.require("vicon-packets")
 
-    rgb = ardx.read_recorder_file(file, "rgb-kinect", "kinect_rgb_packet")
-    marker = ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
     torso = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
-    base = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
-    assert len(rgb) == len(marker) == len(torso) == len(base)
+    vicon = ardx.read_recorder_file(file, "vicon", "vicon_monitor_packet")
+    assert len(torso) == len(vicon)
 
     d = []
-    for i in range(len(rgb)):
-        d.append(dict(rgb=pkt2dict(rgb[i]),
-                      marker=pkt2dict(marker[i]),
-                      torso=pkt2dict(torso[i]),
-                      base=pkt2dict(base[i])))
+    for i in range(len(torso)):
+        d.append(dict(vicon=pkt2dict(vicon[i]),
+                      torso=pkt2dict(torso[i])))
+        print(d[-1])
 
     np.save(file, arr=d)
 
@@ -91,19 +68,6 @@ def get_img(di):
 
 def get_imgs(d):
     return np.array([get_img(di) for di in d])
-
-
-def plot_all_images(d):
-    for i in range(len(d)):
-        img = get_img(di=d[i])
-        xy = get_marker(di=d[i])
-
-        fig, ax = new_fig(aspect=1)
-        plt.imshow(img, origin='lower')
-        if np.any(xy):
-            plt.plot(*xy, marker='x', color='red', markersize=30, lw=5)
-        plt.plot(*u0[i], marker='x', color='blue', markersize=30, lw=5)
-        save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION}/{i}_marker", formats='png')
 
 
 def get_qus(d, mode='commanded'):
@@ -160,7 +124,8 @@ if __name__ == '__main__':
 
     # copy_marker_txt()
     # pkt_list2dict_list_all()
-
+    pkt_list2dict_list(file=file)
+    print('done')
     # from matplotlib import pyplot as plt
     #
     # from wzk.mpl import new_fig, imshow, save_fig

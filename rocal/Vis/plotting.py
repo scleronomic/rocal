@@ -101,34 +101,24 @@ def hist_frame_difference(f1=None, f2=None,
 
 
 def scatter_measurements_3d(x0, x1, title):
-    fig, ax_3d = new_fig(n_dim=3, title=title, width=10)
-    fig, ax_2d = new_fig(n_rows=1, n_cols=3, title=title, width=10)
-    fig, ax_2d_diff = new_fig(n_rows=1, n_cols=3, title=title, width=10, aspect=1)
+    style_dict = dict(marker='o',
+                      markersize=3,
+                      alpha=0.8,
+                      ls='',
+                      dim_labels='xyz')
 
-    points_3d_4views(x=x0, ax_3d=ax_3d, ax_2d=ax_2d, color='b', marker='o', markersize=3, label='measured')
-    points_3d_4views(x=x1, ax_3d=ax_3d, ax_2d=ax_2d, color='r', marker='o', markersize=3, label='calibrated')
+    fig, ax = new_fig(n_rows=1, n_cols=3, title=title, width=10)
+    fig, ax_diff = new_fig(n_rows=1, n_cols=3, title=title, width=10, aspect=1)
+
+    plot_projections_2d(x=x0, ax=ax, color='b', label='measured', **style_dict)
+    plot_projections_2d(x=x1, ax=ax, color='r', label='calibrated', **style_dict)
+    ax[-1].legend()
 
     diff = x0 - x1
     max_diff = np.abs(diff).max()
-    plot_projections_2d(x=diff, ax=ax_2d_diff, dim_labels='xyz', color='k', alpha=0.8, s=3, label='difference',
-                        limits=np.array([[-max_diff * 1.02, +max_diff * 1.02]] * 3))
-    ax_2d[-1].legend()
-    ax_2d_diff[-1].legend()
-    ax_3d.legend()
-
-
-def points_3d_4views(x, ax_3d=None, ax_2d=None, limits=None, **kwargs):
-
-    # if ax_3d is None:
-    #     fig, ax_3d = new_fig(n_dim=3)
-    # ax_3d.scatter(*x.T, **kwargs)
-
-    plot_projections_2d(x=x, ax=ax_2d, dim_labels='xyz', limits=limits, ls='', **kwargs)
-
-
-def test_points_4views():
-    x = np.random.random((100, 3))
-    points_3d_4views(x=x, c='r', marker='x')
+    plot_projections_2d(x=diff, ax=ax_diff, color='k', label='difference',
+                        limits=np.array([[-max_diff * 1.02, +max_diff * 1.02]] * 3), **style_dict)
+    ax_diff[-1].legend()
 
 
 def save_plots(file_res):

@@ -68,7 +68,7 @@ def main():
             label='full calibration')
     ax.plot(np.mean(d0), 0, color='r', marker='o', zorder=100)
     ax.plot(np.mean(d1), 0, color='c', marker='o', zorder=100)
-    ax.plot(np.median(d2), 0, color='b', marker='o', zorder=100)  # TODO CHEAT
+    ax.plot(np.mean(d2), 0, color='b', marker='o', zorder=100)
     ax.set_xlabel('TCP Error [mm]')
     ax.set_ylabel('Density')
     ax.set_xticks(np.arange(5, 60, 10), minor=True)

@@ -3,7 +3,7 @@ from wzk import spatial
 
 from rocal.calibration import calibrate
 from rocal.Measurements.io2 import get_q
-from rocal.Robots.Justin19 import Justin19Cal
+from rocal.Robots import Justin19CalVicon
 from rocal.Vis.plotting import print_stats2
 from rocal.parameter import Parameter, unwrap_x
 
@@ -12,10 +12,8 @@ from rocal.definitions import ICHR20_CALIBRATION
 # FINDING 10000 test configurations is easily enough to have a small variance
 
 
-cal_par = Parameter()
-
-
-def search_world_frame(_cal_rob, q, t):
+def search_world_frame(_cal_rob, _cal_par,
+                       q, t):
     """
     its hard / impossible to find the correct world frame if the initial guess is far off
        -> try multi start and safe the good fits
@@ -24,7 +22,7 @@ def search_world_frame(_cal_rob, q, t):
     threshold = 0.1  # m
     for i in range(n):
         _x, _stats = calibrate(q_cal=q, t_cal=t, q_test=q, t_test=t, x0_noise=0.1, verbose=0,
-                               cal_rob=_cal_rob, cal_par=cal_par)
+                               cal_rob=_cal_rob, cal_par=_cal_par)
         if _stats[0, 0, 0] < threshold:
             print(_stats[:, 0, 0].meand(axis=0))
             print(spatial.trans_rotvec2frame(trans=_x[:3], rotvec=_x[3:6]))
@@ -32,7 +30,8 @@ def search_world_frame(_cal_rob, q, t):
 
 if __name__ == '__main__':
 
-    cal_rob = Justin19Cal(dkmc='cc0c', add_nominal_offsets=True, use_imu=False, el_loop=1)
+    cal_par = Parameter(x_weighting=0)
+    cal_rob = Justin19CalVicon(dkmca='000c0', add_nominal_offsets=True, use_imu=False, el_loop=1)
 
     directory = ICHR20_CALIBRATION + '/Measurements/600'
     (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
@@ -45,12 +44,18 @@ if __name__ == '__main__':
     #                      cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
     print_stats2(stats)
     x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
-    # print('Torso: ')
-    # print(x['dh'][:4, 1])
-    # print(x['el'][:4, 2])
-    print('All')
-    print(repr(x['dh']))
-    print(repr(x['el']))
+
+
+    # from rokin.Robots import Justin19
+    # robot = Justin19()
+    # q = robot.sample_q(100)
+    # f0 = robot.get_frames_dh(q=q, dh=dh0)[:, 13:14, :, :]
+    # f2 = robot.get_frames_dh(q=q, dh=dh2)[:, 13:14, :, :]
+    #
+    # from rocal.Vis.plotting import plot_frame_difference
+    # plot_frame_difference(f0, f2, verbose=3)
+    #
+    # print(pd.DataFrame(np.round(np.abs(d).max(axis=1), 3)))
 
     # stats = np.rad2deg(np.sqrt(stats))
     # from wzk.mpl import new_fig

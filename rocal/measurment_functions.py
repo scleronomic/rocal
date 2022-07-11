@@ -42,6 +42,7 @@ def build_objective_cal_marker(q, t,
 
         if cal_par.x_weighting != 0:
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
+
         if verbose > 0:
             # dd = (t2[:, 0, :-1, -1] - t[:, 0, :-1, -1])
             # from wzk.mpl import new_fig
@@ -60,6 +61,7 @@ def build_objective_cal_marker(q, t,
             #
             # print('dd', dd.mean())
             stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)
+            stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=3)  # verbose-1)
             return stats, obj
 
         return obj
@@ -181,9 +183,9 @@ def build_objective_cal_marker_image(q, t,
     t_right = t[:, 1]
     t_left = t[:, 2]
 
-    i_pole = np.nonzero(t_pole.sum(axis=1) != 0)
-    i_right = np.nonzero(t_right.sum(axis=1) != 0)
-    i_left = np.nonzero(t_left.sum(axis=1) != 0)
+    i_pole = np.nonzero(t_pole.sum(axis=1) != 0)[0]
+    i_right = np.nonzero(t_right.sum(axis=1) != 0)[0]
+    i_left = np.nonzero(t_left.sum(axis=1) != 0)[0]
 
     t_pole = t_pole[i_pole]
     t_right = t_right[i_right]
@@ -209,10 +211,19 @@ def build_objective_cal_marker_image(q, t,
         u_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f[i_right], distort=distort)[:, ::-1]
         u_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f[i_left], distort=distort)[:, ::-1]
 
-        d_pole = t_pole - u_pole
-        d_right = t_right - u_right
-        d_left = t_left - u_left
-        d = np.concatenate((d_pole, d_right, d_left), axis=0)
+        d_pole, d_right, d_left = 0, 0, 0
+        d = np.zeros((0, 2))
+        if i_pole.size > 0:
+            d_pole = t_pole - u_pole
+            d = np.concatenate((d, d_pole), axis=0)
+
+        if i_right.size > 0:
+            d_right = t_right - u_right
+            d = np.concatenate((d, d_right), axis=0)
+
+        if i_left.size > 0:
+            d_left = t_left - u_left
+            d = np.concatenate((d, d_left), axis=0)
 
         # from wzk.mpl import new_fig
         # fig, ax = new_fig()
@@ -227,8 +238,8 @@ def build_objective_cal_marker_image(q, t,
         # obj = np.sum(d_right**2)
         # print(obj)
 
-        # if cal_par.x_weighting != 0:
-        #     obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
+        if cal_par.x_weighting != 0:
+            obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
             # stats = plot_frame_difference(f0=t, f1=t2, frame_names=None, verbose=verbose-1)  # verbose-1)

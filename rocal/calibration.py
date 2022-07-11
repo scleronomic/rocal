@@ -150,11 +150,11 @@ def calibrate(cal_rob, cal_par, x0_noise,
 
     # Pre
     obj_fun = obj_wrapper(cal_rob=cal_rob, cal_par=cal_par, obj_fun=obj_fun)
-    obj_fun_test = obj_fun(q=q_cal, t=t_cal)
+    obj_fun_cal = obj_fun(q=q_cal, t=t_cal)
 
     # Main
     cal_par.options['disp'] = verbose > 2
-    x = pyOpt2.minimize_slsqp(fun=obj_fun_test, x0=x0, options=cal_par.options, verbose=verbose-1)
+    x = pyOpt2.minimize_slsqp(fun=obj_fun_cal, x0=x0, options=cal_par.options, verbose=verbose-1)
 
     # Post
     if q_test is None or t_test is None:

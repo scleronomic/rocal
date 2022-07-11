@@ -6,7 +6,7 @@ from rokin.Robots import Justin19
 from rokin.Vis.robot_3d import animate_path
 from rokin.Vis.configurations import plot_q_distribution, plot_q_configurations
 
-from rocal.definitions import ICHR22_AUTOCALIBRATION
+from rocal.definitions import ICHR22_AUTOCALIBRATION, ICHR22_AUTOCALIBRATION_FIGS
 
 
 def load_arm(file):
@@ -21,8 +21,8 @@ def load_arm(file):
     return q
 
 
-file_right = '/Users/jote/Documents/Code/Python/src/rocal/Plots/ICHR22-AutoCalibration/right_arm.txt'
-file_left = '/Users/jote/Documents/Code/Python/src/rocal/Plots/ICHR22-AutoCalibration/left_arm.txt'
+file_right = f"{ICHR22_AUTOCALIBRATION}/Birbach/right_arm.txt"
+file_left = f"{ICHR22_AUTOCALIBRATION}/Birbach/left_arm.txt"
 
 q_r = load_arm(file_right)
 q_l = load_arm(file_left)
@@ -34,7 +34,7 @@ robot = Justin19()
 # animate_path(q=q, robot=)
 
 set_borders(left=0.13, right=0.97, bottom=0.25, top=0.95)
-set_style(s=('ieee'))
+set_style(s=('ieee',))
 fig, ax = new_fig(width='ieee1c', height=1.5)
 ax = plot_q_configurations(ax=ax, q=q_r[:, 3:10], limits=robot.limits[3:10, :], marker='o', color='red', zorder=10)
 # plot_q_configurations(q_l[:, 10:17], limits=robot.limits[10:17, :], marker='o')
@@ -47,4 +47,4 @@ q_new = q10000[i]
 
 plot_q_configurations(ax=ax, q=q_new[:, 3:10], limits=robot.limits[3:10, :], marker='o', alpha=0.1, color='blue', zorder=1)
 
-save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION}/{mode}_q_configurations", formats='pdf')
+save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION_FIGS}/{mode}_q_configurations", formats='pdf')

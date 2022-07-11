@@ -25,7 +25,7 @@ q_l = np.array([-0.9, -1.5, -1.1])
 q = np.hstack((q_c, q_r, q_l, q_h))
 robot_xy = np.array([x1*1/2, +.11])  # 2/3 for 2 columns
 
-plot_robot_side()
+humanoid_robot_2d.plot_robot_side()
 # Camera Eyes
 cam1_xy = robot_xy
 cam1_theta = np.deg2rad(120)
