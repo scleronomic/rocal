@@ -5,14 +5,14 @@ from wzk.numpy2 import object2numeric_array
 from mopla.Planner.ardx2 import ardx, pkt2dict
 
 from rocal.definitions import ICHR22_AUTOCALIBRATION
-#ardx.require("bcatch.imu-to-ard.imu-raw-packets")
+
 
 file = "/volume/USERSTORE/tenh_jo/Data/Calibration/TorsoRightLeft/0/random_poses_smooth_3-1657533295-measurements"
 
 
 def pkt_list2dict_list(file):
     ardx.require("monitor.torso-monitor-packets")
-    ardx.require("vicon-to-ardx")
+    ardx.require("vicon-to-ardx.vicon_packets")
 
     torso = ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     vicon = ardx.read_recorder_file(file, "vicon", "vicon_tracker_packet")
