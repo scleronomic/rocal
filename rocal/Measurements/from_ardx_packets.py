@@ -34,7 +34,7 @@ def get_marker(di, mode='normal'):
     if di[marker_mode]['num'] != 1:
         return False
     else:
-        return np.array([di['marker']['detections'][0]['y'], di['marker']['detections'][0]['x']])
+        return np.array([di[marker_mode]['detections'][0]['y'], di[marker_mode]['detections'][0]['x']])
 
 
 def get_marker_list(d, mode='normal'):
@@ -43,7 +43,8 @@ def get_marker_list(d, mode='normal'):
 
 
 def get_img(di):
-    img = ardx2.ardx.numpy_view(di['rgb']['img'])
+    img = di['rgb']['img']
+    print(img)
     img = img.reshape(480, 640, 3)
     img = np.swapaxes(img, 0, 1)
     return img
@@ -107,7 +108,29 @@ def pkt_list2dict_list_vicon(file):
 
     np.save(file, arr=d)
 
-
+# Marker(num=1, detections=[Point(x=487.765045, y=169.120102, score=0.972401)], img_info=ImgInfo(m_time=1657126401367480320))
+# Marker(num=1, detections=[Point(x=93.940529, y=161.911331, score=0.992288)], img_info=ImgInfo(m_time=1657126404481551104))
+# Marker(num=1, detections=[Point(x=309.0242, y=286.675323, score=0.961257)], img_info=ImgInfo(m_time=1657126411512713216))
+# Marker(num=1, detections=[Point(x=90.209, y=444.70636, score=0.985144)], img_info=ImgInfo(m_time=1657126414249547008))
+# Marker(num=1, detections=[Point(x=487.34906, y=458.922302, score=0.966917)], img_info=ImgInfo(m_time=1657126417394576896))
+# Marker(num=1, detections=[Point(x=479.589691, y=153.902359, score=0.956294)], img_info=ImgInfo(m_time=1657126420257785088))
+# Marker(num=1, detections=[Point(x=75.835579, y=160.319916, score=0.951467)], img_info=ImgInfo(m_time=1657126423444574720))
+# Marker(num=1, detections=[Point(x=286.619141, y=270.243317, score=0.96582)], img_info=ImgInfo(m_time=1657126430341669888))
+# Marker(num=1, detections=[Point(x=73.391167, y=426.022186, score=0.957798)], img_info=ImgInfo(m_time=1657126433110641664))
+# Marker(num=1, detections=[Point(x=472.661255, y=437.210205, score=0.945652)], img_info=ImgInfo(m_time=1657126436152844800))
+# Marker(num=1, detections=[Point(x=458.375793, y=136.013199, score=0.952761)], img_info=ImgInfo(m_time=1657126438994677504))
+# Marker(num=1, detections=[Point(x=78.344513, y=109.539467, score=0.966252)], img_info=ImgInfo(m_time=1657126442166906368))
+# Marker(num=1, detections=[Point(x=294.533142, y=254.614868, score=0.918927)], img_info=ImgInfo(m_time=1657126445360722944))
+# Marker(num=1, detections=[Point(x=251.2556, y=415.785645, score=0.935257)], img_info=ImgInfo(m_time=1657126448082727936))
+# Marker(num=1, detections=[Point(x=500.17337, y=408.693512, score=0.931204)], img_info=ImgInfo(m_time=1657126451014751232))
+# Marker(num=1, detections=[Point(x=501.03772, y=112.317909, score=0.916162)], img_info=ImgInfo(m_time=1657126453956978944))
+# Marker(num=1, detections=[Point(x=252.808136, y=103.517288, score=0.924101)], img_info=ImgInfo(m_time=1657126456828786176))
+# Marker(num=1, detections=[Point(x=298.269867, y=266.722168, score=0.960588)], img_info=ImgInfo(m_time=1657126462185837568))
+# Marker(num=1, detections=[Point(x=88.864296, y=421.361572, score=0.958139)], img_info=ImgInfo(m_time=1657126465060845056))
+# Marker(num=1, detections=[Point(x=482.035156, y=427.536957, score=0.974011)], img_info=ImgInfo(m_time=1657126468391873536))
+# Marker(num=1, detections=[Point(x=516.794373, y=229.356674, score=0.973853)], img_info=ImgInfo(m_time=1657126471308860928))
+# Marker(num=1, detections=[Point(x=56.139339, y=226.134659, score=0.962592)], img_info=ImgInfo(m_time=1657126474650893056))
+# Marker(num=0, detections=[], img_info=ImgInfo(m_time=1657126485542064896))
 def pkt_list2dict_list_kinect(file):
     ardx2.ardx.require("autocalib.detect-marker-ard.marker-detector-result-packets")
     ardx2.ardx.require("robotfusion.kinect-to-ardx.kinect-packets")
@@ -118,7 +141,7 @@ def pkt_list2dict_list_kinect(file):
     base = ardx2.ardx.read_recorder_file(file, "torso-monitor", "torso_monitor_packet")
     marker = ardx2.ardx.read_recorder_file(file, "marker-rgb-kinect", "MarkerDetectionResultPacket")
     marker_corrected = get_corrected_marker_from_txt(file=file, torso=torso)
-    assert len(rgb) == len(marker) == len(torso) == len(base)
+    assert len(rgb) == len(marker) == len(torso) == len(base) == len(marker_corrected)
 
     d = []
     for i in range(len(rgb)):
@@ -150,11 +173,12 @@ def get_corrected_marker_from_txt(file, torso):
             data = line.split()
             points_per_image[int(data[0])].append(data)
 
+    from wzk import print_dict
     marker = []
     for i in range(len(torso)):
         detections = []
         for points in points_per_image[i]:
             detections.append(Point(x=float(points[1]), y=float(points[2]), score=float(points[3])))
         marker.append(Marker(num=len(detections), detections=detections, img_info=ImgInfo(m_time=torso[i].m_time)))
-
+        print(marker[-1])
     return marker

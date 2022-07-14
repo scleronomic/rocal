@@ -44,12 +44,11 @@ def build_objective_cal_marker(q, t,
             obj += (cal_par.x_weighting*(x - cal_par.x_nominal)**2).mean()
 
         if verbose > 0:
-            # dd = (t2[:, 0, :-1, -1] - t[:, 0, :-1, -1])
-            # from wzk.mpl import new_fig
-            # fig, ax = new_fig()
-            # ax.hist(dd[:, 0], bins=20, color='red')
-            # ax.set_xlabel('x : nominal - measured')
-            #
+
+            # from rocal.definitions import ICHR22_AUTOCALIBRATION
+            # np.save(file=f"{ICHR22_AUTOCALIBRATION}/cartesian_difference_right_left", arr=dict(t2=t2, t0=t))
+
+
             # fig, ax = new_fig()
             # ax.hist(dd[:, 1], bins=20, color='green')
             # ax.set_xlabel('y : nominal - measured')
@@ -191,8 +190,14 @@ def build_objective_cal_marker_image(q, t,
     t_left = t_left[i_left]
 
     def objective(x, verbose=0):
+        x = np.array(x).real
+
         # x = np.random.uniform(-0.001, +0.001, size=x.shape)
         (f, (dh, el, ma, cm, ad), dh_trq) = kin_fun(q=q, x=x)
+
+        gravity_shift = np.eye(4)
+        gravity_shift[:3, :3] = spatial.rotvec2matrix(rotvec=el[:3, 1])
+        f = gravity_shift @ f
 
         (cal_rob.marker_pole.f_robot_marker,
          cal_rob.marker_right.f_robot_marker,
@@ -204,7 +209,7 @@ def build_objective_cal_marker_image(q, t,
         cal_rob.kinect.center_point = cal_rob.kinect_center_point + ad[[1, 2], 0] * 10
         cal_rob.kinect.distortion = cal_rob.kinect_distortion + ad[3, 0]
 
-        distort = True
+        distort = False
         u_pole, p_pole = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_pole, f=f[i_pole], distort=distort)
         u_right, p_right = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_right, f=f[i_right], distort=distort)
         u_left, p_left = cal_rob.kinect.project_marker2image(marker=cal_rob.marker_left, f=f[i_left], distort=distort)
@@ -216,17 +221,17 @@ def build_objective_cal_marker_image(q, t,
         if i_pole.size > 0:
             d_pole = t_pole - u_pole
             d = np.concatenate((d, d_pole.copy()), axis=0)
-            d_pole2 = d_pole * p_pole[:, 2:]
+            d_pole2 = d_pole  #* p_pole[:, 2:]  # ** 1.5
 
         if i_right.size > 0:
             d_right = t_right - u_right
             d = np.concatenate((d, d_right.copy()), axis=0)
-            d_right2 = d_right * p_right[:, 2:]
+            d_right2 = d_right  # * p_right[:, 2:]  # ** 1.5
 
         if i_left.size > 0:
             d_left = t_left - u_left
             d = np.concatenate((d, d_left.copy()), axis=0)
-            d_left2 = d_left * p_left[:, 2:]
+            d_left2 = d_left  # * p_left[:, 2:]  # ** 1.5
 
         # from wzk.mpl import new_fig
         # fig, ax = new_fig()
@@ -258,20 +263,34 @@ def build_objective_cal_marker_image(q, t,
             # ax[1].legend()
             # ax[2].legend()
 
+            print(f"pole:  min {p_pole[:, 2].min()} [{np.argmin(p_pole[:, 2])  }] | max {p_pole[:, 2].max()} [{np.argmax(p_pole[:, 2])}]")
+            print(f"right: min {p_right[:, 2].min()} [{np.argmin(p_right[:, 2])}] | max {p_right[:, 2].max()} [{np.argmax(p_right[:, 2])}]")
+            print(f"left:  min {p_left[:, 2].min()} [{np.argmin(p_left[:, 2])}] | max {p_left[:, 2].max()} [{np.argmax(p_left[:, 2])}]")
+
             fig, ax = new_fig(n_rows=4, share_x=True, share_y=True)
             style = dict(ls='', marker='o')
-            ax[0].plot(np.linalg.norm(p_pole, axis=-1), np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
-            ax[1].plot(np.linalg.norm(p_right, axis=-1), np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
-            ax[2].plot(np.linalg.norm(p_left, axis=-1), np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
-            ax[3].plot(np.linalg.norm(p_pole, axis=-1), np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
-            ax[3].plot(np.linalg.norm(p_right, axis=-1), np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
-            ax[3].plot(np.linalg.norm(p_left, axis=-1), np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
+            ax[0].plot(p_pole[:, 2], np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
+            ax[1].plot(p_right[:, 2], np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
+            ax[2].plot(p_left[:, 2], np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
+            ax[3].plot(p_pole[:, 2], np.linalg.norm(d_pole, axis=-1), **style, label='pole', color='cyan')
+            ax[3].plot(p_right[:, 2], np.linalg.norm(d_right, axis=-1), **style, label='right', color='red')
+            ax[3].plot(p_left[:, 2], np.linalg.norm(d_left, axis=-1), **style, label='left', color='blue')
             ax[0].legend()
             ax[1].legend()
             ax[2].legend()
             ax[3].legend()
             ax[3].set_xlim([0, 1.5])
-            ax[3].set_ylim([0, 15])
+            ax[3].set_ylim([0, 5])
+
+            x = np.hstack((p_pole[:, 2],
+                           p_right[:, 2],
+                           p_left[:, 2]))
+            y = np.hstack((np.linalg.norm(d_pole, axis=-1),
+                           np.linalg.norm(d_right, axis=-1),
+                           np.linalg.norm(d_left, axis=-1)))
+
+            a, b = np.polyfit(x, y, 1)
+            ax[3].plot(x, a*x + b, '--', color='black')
 
             return d, obj
             # return stats, obj

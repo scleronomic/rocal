@@ -7,7 +7,7 @@ from rocal.Measurements.from_ardx_packets import get_qt_vicon
 
 from rocal.Robots import Justin19CalVicon
 from rocal.Vis.plotting import print_stats2
-from rocal.parameter import Parameter, unwrap_x
+from rocal import parameter
 
 from rocal.definitions import ICHR20_CALIBRATION, ICHR22_AUTOCALIBRATION
 
@@ -20,7 +20,7 @@ def search_world_frame(q, t):
        -> try multi start and safe the good fits
     """
     cal_rob = Justin19CalVicon(dkmca='000c0', add_nominal_offsets=True, use_imu=False, el_loop=1)
-    cal_par = Parameter(x_weighting=0)
+    cal_par = parameter.Parameter(x_weighting=0)
 
     n = 100
     threshold = 0.1  # m
@@ -35,31 +35,31 @@ def search_world_frame(q, t):
 
 if __name__ == '__main__':
 
-    cal_par = Parameter(x_weighting=0)
-    cal_rob = Justin19CalVicon(dkmca='ccfc0', add_nominal_offsets=True, use_imu=False, el_loop=1)
+    cal_par = parameter.Parameter(x_weighting=0)
+    cal_rob = Justin19CalVicon(dkmca='cc0c0', add_nominal_offsets=True, use_imu=False, el_loop=1)
 
-    # directory = ICHR20_CALIBRATION + '/Measurements/600'
-    # (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
+    directory = ICHR20_CALIBRATION + '/Measurements/600'
+    (q0_cal, q_cal, t_cal), (q0_test, q_test, t_test) = get_q(cal_rob=cal_rob, split=-1, seed=75)
 
-    file = f"{ICHR22_AUTOCALIBRATION}/Vicon/random_poses_smooth_100-1657536656-measurements.npy"
-    q, t = get_qt_vicon(file=file)
-    i = np.array([69,  70,  45,  84,  65,  28,  98,  51,  85, 100])
-    q, t = np.delete(q, i, axis=0), np.delete(t, i, axis=0)
-    (q0_cal, t_cal), (q0_test, t_test) = train_test_split(q, t, split=-1, shuffle=False)
+    # file = f"{ICHR22_AUTOCALIBRATION}/Vicon/2/random_poses_smooth_100-1657536656-measurements.npy"
+    # q, t = get_qt_vicon(file=file)
+    # i = np.array([69,  70,  45,  84,  65,  28,  98,  51,  85, 100])
+    # q, t = np.delete(q, i, axis=0), np.delete(t, i, axis=0)
+    # (q0_cal, t_cal), (q0_test, t_test) = train_test_split(q, t, split=-1, shuffle=False)
 
     from wzk import tic, toc
 
-    tic()
     x, stats = calibrate(q_cal=q0_cal, t_cal=t_cal, q_test=q0_test, t_test=t_test, verbose=4,
                          cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
-    toc()
 
     # search_world_frame(q, t)
     # x, stats = calibrate(q_cal=q0_cal, t_cal=q_cal, q_test=q0_test, t_test=q_cal, verbose=1,
     #                      obj_fun='joints',
     #                      cal_par=cal_par, cal_rob=cal_rob, x0_noise=0)
     print_stats2(stats)
-    # x = unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True )
+    x = parameter.unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
+
+    parameter.print_parameter(x)
 
     # print(x['cm'])
 
@@ -88,3 +88,5 @@ if __name__ == '__main__':
     #     ax[i-3].set_xlabel('|q_c - q_m| [Degree]')
     #     ax[i-3].hist(np.rad2deg(np.abs(q0_cal - q_cal))[:, i], color='red', alpha=0.3)
     #     ax[i-3].hist(stats[:, i], color='blue', alpha=0.3)
+
+

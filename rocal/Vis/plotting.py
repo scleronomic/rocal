@@ -33,6 +33,13 @@ def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
         if verbose > 1:
             print_frame_difference(d_trans=d_trans, d_rot=d_rot, title=fname)
 
+        if verbose > 1:
+            n = 10
+            idx_worst = np.argsort(d_trans)[::-1]
+            print('Worst Configurations')
+            print(repr(idx_worst[:n]))
+            print(d_trans[idx_worst[:n]])
+
         if verbose > 2:
             hist_frame_difference(d_trans=d_trans, d_rot=d_rot, title='Difference - ' + fname)
 
@@ -43,12 +50,7 @@ def plot_frame_difference(f0, f1, frame_names=None, verbose=2):
             scatter_measurements_3d(x0=pos, x1=pos2, title='Positions - ' + fname,)
             scatter_measurements_3d(x0=rot, x1=rot2, title='Rotations - ' + fname,)
 
-        if verbose > 4:
-            n = 74
-            idx_worst = np.argsort(d_trans)[::-1]
-            print('Worst Configurations')
-            print(repr(idx_worst[:n]))
-            print(d_trans[idx_worst[:n]])
+
 
     if verbose > 0:
         print_stats2(stats=stats)

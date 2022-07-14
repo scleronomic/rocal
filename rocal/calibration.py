@@ -11,7 +11,7 @@ from scipy.optimize import least_squares
 
 # Kinematic
 def get_torque(f, cal_rob,
-               ma):
+               ma, gravity=None):
     # Finding
     #  f_dh(..., q, theta+X, ...) == f_dh(..., q, theta, ...) @ Rot_z(X)
     # # rotation around z (theta) after dh
@@ -25,13 +25,14 @@ def get_torque(f, cal_rob,
     torque = forward.get_torques(f=f, mass=mass, mass_pos=mass_pos, mass_f_idx=cal_rob.masses_f_idx,
                                  torque_f_idx=cal_rob.joint_f_idx_dh,
                                  frame_frame_influence=cal_rob.frame_frame_influence,
+                                 gravity=gravity,
                                  mode='dh')[1]
     return torque
 
 
 def get_torque_dh(f, cal_rob,
-                  dh, el, ma):
-    torque = get_torque(f=f, cal_rob=cal_rob, ma=ma)
+                  dh, el, ma, gravity=None):
+    torque = get_torque(f=f, cal_rob=cal_rob, ma=ma, gravity=gravity)
     return torque_compliance2dh(torque=torque, dh=dh,  el=el, include_beta=cal_rob.include_beta)
 
 
@@ -57,6 +58,12 @@ def kinematic(cal_rob,
     if cal_rob.add_nominal_offsets:
         dh, el, ma, cm, ad = offset_nominal_parameters(cal_rob=cal_rob, dh=dh, el=el, ma=ma, cm=cm, ad=ad)
 
+    # Gravity hack, encoded in the elasticities
+    gravity_shift = spatial.rotvec2matrix(rotvec=el[:3, 1])
+    gravity = np.array([0, 0, -1])
+    gravity = gravity_shift @ gravity[:, np.newaxis]
+    # print('gravity', gravity)
+
     if cal_rob.use_imu:
         imu, q = np.split(q, [3], axis=-1)
     else:
@@ -66,7 +73,7 @@ def kinematic(cal_rob,
     f = cal_rob.get_frames_dh(q=q, dh=dh)
     dh_trq = None
     for i in range(cal_rob.el_loop):
-        dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, el=el, ma=ma)
+        dh_trq = get_torque_dh(f=f, cal_rob=cal_rob, dh=dh, el=el, ma=ma, gravity=gravity)
         f = cal_rob.get_frames_dh(q=q, dh=dh_trq)
 
     return (f,
@@ -155,7 +162,8 @@ def calibrate(cal_rob, cal_par, x0_noise,
     # Main
     cal_par.options['disp'] = verbose > 2
     x = pyOpt2.minimize_slsqp(fun=obj_fun_cal, x0=x0, options=cal_par.options, verbose=verbose-1)
-    # x = least_squares(fun=obj_fun_cal, x0=x0, method="trf").x
+    # x = pyOpt2.minimize_cobyla(fun=obj_fun_cal, x0=x0, options=cal_par.options, verbose=verbose-1)
+    # x = least_squares(fun=obj_fun_cal, x0=x0, method="lm").x
 
     # Post
     if q_test is None or t_test is None:

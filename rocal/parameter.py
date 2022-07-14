@@ -16,7 +16,7 @@ class Parameter:
         self.mu_sigma = 0  #
 
         self.method = 'PyOpt - SLSQP'  # way faster
-        self.options = {'maxiter': 300,
+        self.options = {'maxiter': 200,
                         'disp': True,
                         'ftol': 1e-6,
                         'sens_step': 1e-6,
@@ -84,6 +84,11 @@ def get_active_parameters(cal_rob):
     # Elasticity
     if el == '0':
         el_bool = np.zeros((n_el, m_el), dtype=bool)
+
+    elif el == 'g':  # gravity  # hack
+        el_bool = np.zeros((n_el, m_el), dtype=bool)
+        el_bool[:3, 1] = True
+
     elif el == 'j':
         el_bool = np.zeros((n_el, m_el), dtype=bool)
         el_bool[:, -1] = True
@@ -244,3 +249,10 @@ def offset_nominal_parameters(cal_rob,
     ad2 = ad
 
     return dh2, el2, ma2, cm2, ad2
+
+
+def print_parameter(x):
+    assert isinstance(x, dict)
+    print(f'self.dh = np.{repr(x["dh"])}')
+    print(f'self.el = np.{repr(x["el"])}')
+    print(f'self.ma = np.{repr(x["ma"])}')
