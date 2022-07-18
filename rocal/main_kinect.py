@@ -227,11 +227,11 @@ def print_dh_differences():
 
 
 def main():
-    dkmca = 'c00cf'
+    dkmca = 'jj0cf'
     el_loop = 1
     q, t, l = get_qt(n=300, q_mode='commanded', m_mode='corrected')
 
-    cal_par = parameter.Parameter(x_weighting=10, t_weighting=1*np.array([1, 1, 1]))
+    cal_par = parameter.Parameter(x_weighting=10, t_weighting=1*np.array([0, 1, 1]))
     cal_rob = Justin19CalKinect(dkmca=dkmca, add_nominal_offsets=True, use_imu=False, el_loop=el_loop)
 
     (q_cal, t_cal), (q_test, t_test) = train_test_split(q, t, split=-1, shuffle=False)
@@ -333,3 +333,16 @@ if __name__ == '__main__':
 
 
 
+# right: mean=1.069 | std=0.611 | max=3.536
+
+
+# wo intrinsics
+# right: mean=0.906 | std=0.475 | max=2.542
+# left:  mean=1.275 | std=0.6 | max=3.267
+#                       mean       std    median       min       max
+# Translation [mm]  10.34896   4.32171  10.47145   1.88115  20.71007
+#   Rotation [deg]   0.41742   0.00839   0.41762   0.39568   0.43533
+
+# w intrinsics
+# right: mean=0.887 | std=0.46 | max=2.539
+# left:  mean=1.264 | std=0.597 | max=3.19

@@ -1,6 +1,6 @@
 import numpy as np
 
-from wzk.mpl import new_fig, set_style, set_borders, save_fig
+from wzk.mpl import new_fig, set_style, set_borders, save_fig, remove_duplicate_labels
 
 from rokin.Robots import Justin19
 from rokin.Vis.robot_3d import animate_path
@@ -33,18 +33,20 @@ robot = Justin19()
 
 # animate_path(q=q, robot=)
 
-set_borders(left=0.13, right=0.97, bottom=0.25, top=0.95)
+set_borders(left=0.12, right=0.99, bottom=0.28, top=0.99)
 set_style(s=('ieee',))
-fig, ax = new_fig(width='ieee1c', height=1.5)
-ax = plot_q_configurations(ax=ax, q=q_r[:, 3:10], limits=robot.limits[3:10, :], marker='o', color='red', zorder=10)
+fig, ax = new_fig(width='ieee1c', height=1.3)
+ax = plot_q_configurations(ax=ax, q=q_r[:, 3:10], limits=robot.limits[3:10, :], marker='o', color='red', zorder=2, label='taught poses')
 # plot_q_configurations(q_l[:, 10:17], limits=robot.limits[10:17, :], marker='o')
 
 
 mode = 'kinect-right'
-q10000 = np.load(f"{ICHR22_AUTOCALIBRATION}/q10000_random_{mode}.npy")
-i = np.random.choice(np.arange(len(q10000)), size=1000, replace=False)
+n = 1000
+q10000 = np.load(f"{ICHR22_AUTOCALIBRATION}/Measurements/q10000_random_{mode}.npy")
+i = np.random.choice(np.arange(len(q10000)), size=n, replace=False)
 q_new = q10000[i]
-
-plot_q_configurations(ax=ax, q=q_new[:, 3:10], limits=robot.limits[3:10, :], marker='o', alpha=0.1, color='blue', zorder=1)
-
-save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION_FIGS}/{mode}_q_configurations", formats='pdf')
+q_new[:, 9] = robot.sample_q(n)[:, 9]
+plot_q_configurations(ax=ax, q=q_new[:, 3:10], limits=robot.limits[3:10, :], marker='o', alpha=0.1, color='blue', zorder=1, label='rejection sampling')
+ax.legend()
+remove_duplicate_labels(ax)
+save_fig(fig=fig, file=f"{ICHR22_AUTOCALIBRATION_FIGS}/{mode}_q_configurations", formats='pdf', bbox=None)

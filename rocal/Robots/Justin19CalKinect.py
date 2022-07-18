@@ -23,20 +23,20 @@ dh_bool_torso = np.zeros_like(dh_bool_torso, dtype=bool)
 #                         [13, 3, 13, 3],
 #                         [11, 8, 11, 8]]) < 8
 
-dh_bool_right = np.array([[9, 1, 9, 1],  # 3 -> 11
-                          [9, 1, 9, 1],
-                          [9, 1, 9, 1],   # 12 justin ellen
-                          [9, 7, 9, 7],
-                          [9, 7, 9, 7],
-                          [9, 7, 9, 7],
+dh_bool_right = np.array([[9, 1, 9, 9],  # 3 -> 11
+                          [9, 1, 9, 9],
+                          [9, 1, 9, 9],   # 12 justin ellen
+                          [9, 1, 9, 9],
+                          [9, 1, 9, 9],
+                          [9, 9, 9, 9],
                           [9, 9, 9, 9]]) < 5
 
-dh_bool_left = np.array([[9, 1, 9, 1],  # 3 -> 11
-                         [9, 1, 9, 1],
-                         [9, 1, 9, 1],   # 12 justin ellen
-                         [9, 7, 9, 7],
-                         [9, 7, 9, 7],
-                         [9, 7, 9, 7],
+dh_bool_left = np.array([[9, 9, 9, 9],  # 3 -> 11
+                         [9, 9, 9, 9],
+                         [9, 9, 9, 9],   # 12 justin ellen
+                         [9, 9, 9, 9],
+                         [9, 9, 9, 9],
+                         [9, 9, 9, 9],
                          [9, 9, 9, 9]]) < 5
 # dh_bool_left = np.array([[13, 12, 13, 13],  # 3 -> 11
 #                          [13, 12, 13, 13],
@@ -88,7 +88,9 @@ el_bool_head = np.zeros_like(el_bool_head, dtype=bool)
 cm_bool = np.array([[1, 1, 1, 0, 0, 0],
                     [1, 1, 1, 0, 0, 0],
                     [1, 1, 1, 0, 0, 0],
-                    [1, 1, 1, 1, 1, 1]], dtype=bool)
+                    [1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1],
+                    ], dtype=bool)
 
 
 class Justin19CalKinect(Justin19, RobotCal):
@@ -116,16 +118,16 @@ class Justin19CalKinect(Justin19, RobotCal):
         self.ma = np.hstack((justin19_par.MASS_POS[:, :3], justin19_par.MASSES[:, np.newaxis] / 100))
 
         # CM
-        self.cm = np.stack(( # np.eye(4),
-                            MARKER_POLE.f_robot_marker.copy(),
+        self.cm = np.stack((MARKER_POLE.f_robot_marker.copy(),
                             MARKER_RIGHT.f_robot_marker.copy(),
                             MARKER_LEFT.f_robot_marker.copy(),
-                            KINECT.f_robot_camera.copy()), axis=0)
-        self.cm_f_idx = [ # 0,
-                         MARKER_POLE.f_idx_robot,
+                            KINECT.f_robot_camera.copy(),
+                            np.eye(4)), axis=0)
+        self.cm_f_idx = [MARKER_POLE.f_idx_robot,
                          MARKER_RIGHT.f_idx_robot,
                          MARKER_LEFT.f_idx_robot,
-                         KINECT.f_idx_robot]
+                         KINECT.f_idx_robot,
+                         23]
         self.cm_bool_c = cm_bool
         self.n_cm = len(self.cm)
 
@@ -238,3 +240,5 @@ class Justin19CalKinect(Justin19, RobotCal):
         #                                 0.00000000e+00],
         #                               [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
         #                                 -1.57079633e+00]])
+
+
