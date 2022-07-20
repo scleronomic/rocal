@@ -242,6 +242,10 @@ def build_objective_cal_marker_image(q, t,
             d = np.concatenate((d, d_left.copy()), axis=0)
             d_left2 = d_left * p_left[:, 2:] ** 1
 
+        # sigma_u = 1/5
+        # sigma_u_z = (1/p[:, 2]**2) * (1 + (p[:, 0]**2 + p[:, 1]**2)/ p[:, 2]**2)
+        # sigma_u = sigma_u + sigma_u_z
+
         # from wzk.mpl import new_fig
         # fig, ax = new_fig()
         # ax.plot(*d_pole.T, 'o', color='red')

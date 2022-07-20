@@ -179,18 +179,6 @@ def test_vicon(dkmca, x):
                           [0., 1., 0., 0.05189488],
                           [0., 0., 0., 1.]]])
 
-    # cm_vicon = np.array([[[ 0.02322987, -0.99972573, -0.00297448, -2.55079078],
-    #                       [ 0.99959207,  0.02317711,  0.0166887 ,  1.98926354],
-    #                       [-0.01661518, -0.00336094,  0.99985631,  0.1020042 ],
-    #                       [ 0.        ,  0.        ,  0.        ,  1.        ]],
-    #                      [[ 0.        ,  0.        , -1.        , -0.09915985],
-    #                       [ 0.        , -1.        ,  0.        , -0.02133832],
-    #                       [-1.        ,  0.        ,  0.        ,  0.08904842],
-    #                       [ 0.        ,  0.        ,  0.        ,  1.        ]],
-    #                      [[ 0.        ,  0.        , -1.        , -0.10507792],
-    #                       [-1.        ,  0.        ,  0.        ,  0.02153678],
-    #                       [ 0.        ,  1.        ,  0.        ,  0.05301567],
-    #                       [ 0.        ,  0.        ,  0.        ,  1.        ]]])
     cal_rob = Justin19CalKinect(dkmca=dkmca, add_nominal_offsets=True, use_imu=False, el_loop=1)
     (q0_cal, q_cal, t_cal), _ = get_q(cal_rob=cal_rob, split=-1, seed=75)
     get_frames = calibration.create_wrapper_kinematic(x=x, cal_rob=cal_rob)
@@ -227,7 +215,7 @@ def print_dh_differences():
 
 
 def main():
-    dkmca = 'jj0cf'
+    dkmca = 'c00c0'
     el_loop = 1
     q, t, l = get_qt(n=300, q_mode='commanded', m_mode='corrected')
 
@@ -242,7 +230,8 @@ def main():
 
     x = parameter.unwrap_x(x=x, cal_rob=cal_rob, add_nominal_offset=True)
 
-    x = round_dict(d=x, decimals=5)
+    x['el'] /= 100.0
+    x = round_dict(d=x, decimals=9)
     print_dict(x)
 
     plot_pixel_error(dkmca=dkmca, stats=stats, l=l)

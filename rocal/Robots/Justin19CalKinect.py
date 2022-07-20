@@ -47,15 +47,15 @@ dh_bool_left = np.array([[9, 9, 9, 9],  # 3 -> 11
 #                          [13, 8, 13, 13]]) < 8
 
 
-dh_bool_head = np.array([[1, 1, 1, 1],
-                         [1, 1, 1, 1]], dtype=bool)  # TODO Not tuned yet
+dh_bool_head = np.array([[0, 1, 0, 0],
+                         [0, 0, 1, 0]], dtype=bool)  # TODO Not tuned yet
 # dh_bool_head = np.zeros_like(dh_bool_head, dtype=bool)
 
 el_bool_torso = np.array([[0, 1, 0],
                           [1, 1, 1],
                           [1, 1, 1],
                           [0, 0, 1]], dtype=bool)
-
+el_bool_torso = np.zeros_like(el_bool_torso, dtype=bool)
 # el_bool_arm = np.array([[1, 0, 1],
 #                         [1, 0, 1],
 #                         [1, 0, 1],
@@ -78,7 +78,7 @@ el_bool_left = np.array([[1, 0, 1],
                          [0, 0, 0],
                          [0, 0, 0],
                          [0, 0, 0]], dtype=bool)
-# el_bool_arm = np.zeros_like(el_bool_arm, dtype=bool)
+el_bool_left = np.zeros_like(el_bool_left, dtype=bool)
 
 el_bool_head = np.array([[1, 0, 1],
                          [1, 0, 1]], dtype=bool)
@@ -89,8 +89,7 @@ cm_bool = np.array([[1, 1, 1, 0, 0, 0],
                     [1, 1, 1, 0, 0, 0],
                     [1, 1, 1, 0, 0, 0],
                     [1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1],
-                    ], dtype=bool)
+                    [0, 0, 0, 0, 0, 0]], dtype=bool)
 
 
 class Justin19CalKinect(Justin19, RobotCal):
